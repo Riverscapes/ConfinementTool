@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Metadata type="SFR Processing" version="0.3"> <!-- This is information about the metadata module and format(and XSD), not specific to the tool being run. -->
+  <Tool>
+    <Name>Test Tool Name</Name>
+    <Version>0.0</Version>
+  </Tool>
+  <Processing>
+    <ComputerID>Kelly-SFR</ComputerID><!-- This is obtained from socket.gethostname() -->
+    <Operator>kelly</Operator><!-- This is obtained from getpass.getuser() or can be manually set -->
+    <Runs><!--This is useful for including metadata over batch processing of the same tool in one xml file -->
+      <Run status="Success"><!-- A Single run of the model-->
+        <TimeStart>2016-09-06T13:59:39</TimeStart>
+        <TimeStop>2016-09-06T13:59:39</TimeStop>
+        <TotalProcessingTime>0.0</TotalProcessingTime>
+        <Parameters> <!--List of input parameters -->
+          <Parameter>
+            <Name>Parameter Name 1</Name>
+            <Value>Parameter Value 1</Value>
+          </Parameter>
+          <Parameter>
+            <Name>Parameter Name 2</Name>
+            <Value>Parameter Value 2</Value>
+          </Parameter>
+        </Parameters>
+        <Outputs> <!--List of outputs. Generally file names -->
+          <Output>
+            <Name>Output Name 1</Name>
+            <Value>Output Value 1</Value>
+          </Output>
+          <Output>
+            <Name>Output Name 2</Name>
+            <Value>Output Value 2</Value>
+          </Output>
+        </Outputs>
+        <Messages><!-- Processing messages, "Level" attributes are user defined.-->
+          <Message Level="Info">Info Message Text</Message>
+          <Message Level="Warning">Warning Message Text</Message>
+          <Message Level="Error">Error Message Text</Message>
+        </Messages>
+        <Results> <!--I am considering changing this to <results>, but these are all custom nodes for each model. -->
+          <CustomNode1>CustomValue1</CustomNode1>
+          <CustomNode2>CustomValue2</CustomNode2>
+        </Results>
+      </Run>
+    </Runs>
+  </Processing>
+</Metadata>

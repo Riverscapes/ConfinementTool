@@ -13,6 +13,8 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <InterpreterId />
     <InterpreterVersion />
+    <CommandLineArguments>"1" "2" "3" "4" "5" "6"</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -26,6 +28,27 @@
     <Compile Include="geometry_functions.py" />
     <Compile Include="gis_tools.py" />
     <Compile Include="MovingWindow.py" />
+    <Compile Include="sfr_metadata\ExampleMetadata.py" />
+    <Compile Include="sfr_metadata\Metadata.py" />
+    <Compile Include="sfr_metadata\__init__.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Confinement_Toolbox.pyt" />
+    <Content Include="sfr_metadata\.git" />
+    <Content Include="sfr_metadata\Metadata.pyc" />
+    <Content Include="sfr_metadata\README.md" />
+    <Content Include="sfr_metadata\Samples\SampleMetadata0.1.xml" />
+    <Content Include="sfr_metadata\Samples\SampleMetadata0.2.xml" />
+    <Content Include="sfr_metadata\Samples\SampleMetadata0.3.xml" />
+    <Content Include="sfr_metadata\SFR_Metadata_Module.pyproj" />
+    <Content Include="sfr_metadata\Validation\MetadataValidation0.3.xsd" />
+    <Content Include="sfr_metadata\__init__.pyc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="sfr_metadata\" />
+    <Folder Include="sfr_metadata\Samples\" />
+    <Folder Include="sfr_metadata\Validation\" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />

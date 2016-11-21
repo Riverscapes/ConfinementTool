@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "arcpy", "arcpy.pyproj", "{726D7E8E-14F2-4C01-9EBD-25AD016CBF68}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EEA2DA0B-7CCE-497C-BEA2-C47B7FC0B703}"
+	ProjectSection(SolutionItems) = preProject
+		..\sfr_metadata\Metadata.py = ..\sfr_metadata\Metadata.py
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{726D7E8E-14F2-4C01-9EBD-25AD016CBF68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{726D7E8E-14F2-4C01-9EBD-25AD016CBF68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
