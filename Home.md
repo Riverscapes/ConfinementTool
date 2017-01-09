@@ -1,14 +1,10 @@
----
-title: "Confinement Toolbox"
----
-
 The Confinement Toolbox contains the Confinement Tool and Moving Window Tool for calculating confinement along a stream network. This tool is written in Python (2.7) for use in ArcGIS version 10.1.
 
 ## Download #
  
 **[Current Version (0.2.0)](downloads/ConfinementToolbox_0.2.0.zip)**  released on 2016-01-18
 
-[Previous Versions](downloads/Downloads.html)
+[Previous Versions](downloads/Downloads)
 
 ## Installation
 
@@ -21,8 +17,8 @@ The Confinement Toolbox is provided as a zip file containing a .pyt file and sup
 
 # Tool Documentation #
 
-- **[Confinement Tool](ConfinementTool.html)** Generate confining margins and calculate Confinement values for a stream network.
-- **[Moving Window Tool](MovingWindowTool.html)** Tool for calculating confinement from a set of moving window segments.
+- **[Confinement Tool](ConfinementTool)** Generate confining margins and calculate Confinement values for a stream network.
+- **[Moving Window Tool](MovingWindowTool)** Tool for calculating confinement from a set of moving window segments.
 
 # Acknowledgements
 The Confinement Toolbox was written by Kelly Whitehead (South Fork Research, Seattle WA) with support, contributions and testing by
