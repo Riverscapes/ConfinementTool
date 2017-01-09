@@ -26,7 +26,8 @@ import gis_tools
 def main(
     fcLineNetwork,
     fieldStreamRouteID,
-    fieldAttribute,
+    fieldConfinement,
+    fieldConstriction,
     strSeedDistance,
     inputliststrWindowSize,
     outputWorkspace,
@@ -114,19 +115,38 @@ def main(
     fcIntersected = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_IntersectWindowAttributes")
     arcpy.Intersect_analysis([fcWindowLines,fcLineNetwork],fcIntersected,"ALL",output_type="LINE")
 
-    tblSummaryStatistics = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatsTable")
-    arcpy.Statistics_analysis(fcIntersected,tblSummaryStatistics,"Shape_Length SUM",fieldStreamRouteID + ";SeedID;Seg;" + fieldAttribute)
+    # Confinement
+    tblSummaryStatisticsConfinement = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatsTableConfinement")
+    arcpy.Statistics_analysis(fcIntersected, tblSummaryStatisticsConfinement,"Shape_Length SUM", fieldStreamRouteID + ";SeedID;Seg;" + fieldConfinement)
 
     tblSummaryStatisticsPivot = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsPivotTable")
-    arcpy.PivotTable_management(tblSummaryStatistics,"Route;SeedID;Seg",fieldAttribute,"SUM_Shape_Length",tblSummaryStatisticsPivot)
+    arcpy.PivotTable_management(tblSummaryStatisticsConfinement,"Route;SeedID;Seg", fieldConfinement, "SUM_Shape_Length", tblSummaryStatisticsPivot)
     
     gis_tools.resetField(tblSummaryStatisticsPivot,"Con_Value","DOUBLE")
-    arcpy.CalculateField_management(tblSummaryStatisticsPivot,"Con_Value","!" + fieldAttribute+ "1!/(!" + fieldAttribute + "0! + !" + fieldAttribute + "1!)","PYTHON")
+    arcpy.CalculateField_management(tblSummaryStatisticsPivot,"Con_Value","!" + fieldConfinement + "1!/(!" + fieldConfinement + "0! + !" + fieldConfinement + "1!)", "PYTHON")
 
     #Pivot Confinement on Segment Size
     tblSummaryStatisticsWindowPivot = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsWindowPivotTable")
     arcpy.PivotTable_management(tblSummaryStatisticsPivot,fieldStreamRouteID + ";SeedID","Seg","Con_Value",tblSummaryStatisticsWindowPivot)
-    
+
+    # Constriction
+
+    tblSummaryStatisticsConstriction = gis_tools.newGISDataset(tempWorkspace, "GNAT_MWA_SummaryStatsTableConstriction")
+    arcpy.Statistics_analysis(fcIntersected, tblSummaryStatisticsConstriction, "Shape_Length SUM",
+                              fieldStreamRouteID + ";SeedID;Seg;" + fieldConstriction)
+
+    tblSummaryStatisticsPivotConstriction = gis_tools.newGISDataset(tempWorkspace, "GNAT_MWA_SummaryStatisticsPivotTableConsriction")
+    arcpy.PivotTable_management(tblSummaryStatisticsConstriction, "Route;SeedID;Seg", fieldConstriction,
+                                "SUM_Shape_Length", tblSummaryStatisticsPivotConstriction)
+
+
+    gis_tools.resetField(tblSummaryStatisticsPivotConstriction, "CNST_Value", "DOUBLE")
+    arcpy.CalculateField_management(tblSummaryStatisticsPivotConstriction, "CNST_Value",
+                                    "!" + fieldConstriction + "1!/(!" + fieldConstriction + "0! + !" + fieldConstriction + "1!)",
+                                    "PYTHON")
+    tblSummaryStatisticsWindowPivotConstriction = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsWindowPivotTableConstriction")
+    arcpy.PivotTable_management(tblSummaryStatisticsPivotConstriction,fieldStreamRouteID + ";SeedID","Seg","CNST_Value",tblSummaryStatisticsWindowPivotConstriction)
+
     strWindowSizeFields = ""
     for WindowSize in liststrWindowSize:
         strWindowSizeFields = strWindowSizeFields + ";Seg" + WindowSize
@@ -134,12 +154,13 @@ def main(
 
     #Join Above table to seed points
     arcpy.JoinField_management(fcSeedPoints,"SeedID",tblSummaryStatisticsWindowPivot,"SeedID",strWindowSizeFields)
+    arcpy.JoinField_management(fcSeedPoints,"SeedID",tblSummaryStatisticsWindowPivotConstriction,"SeedID",strWindowSizeFields)
 
     # Manage Outputs
-    fcOutputSeedPoints = gis_tools.newGISDataset(outputWorkspace,"ConfinementSeedPoints")
+    fcOutputSeedPoints = gis_tools.newGISDataset(outputWorkspace,"MovingWindowSeedPoints")
     arcpy.CopyFeatures_management(fcSeedPoints,fcOutputSeedPoints)
 
-    fcOutputWindows = gis_tools.newGISDataset(outputWorkspace,"ConfinementSegments")
+    fcOutputWindows = gis_tools.newGISDataset(outputWorkspace,"MovingWindowSegments")
     arcpy.CopyFeatures_management(fcWindowLines,fcOutputWindows)
 
     return
@@ -153,4 +174,5 @@ if __name__ == "__main__":
         sys.argv[4],
         sys.argv[5],
         sys.argv[6],
-        sys.argv[7])
+        sys.argv[7],
+        sys.argv[8])

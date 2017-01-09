@@ -28,6 +28,7 @@ import DividePolygonBySegment
 # Shapefile support
 # Remove old calculation methods
 # use stat table calculation method
+# Added Constriction Field
 
 # # Main Function # #
 def main(fcInputStreamLineNetwork,
@@ -168,6 +169,7 @@ def main(fcInputStreamLineNetwork,
     #Table and Attributes
     arcpy.AddField_management(fcOutputRawConfiningState,"Con_Type","TEXT",field_length="6")
     arcpy.AddField_management(fcOutputRawConfiningState,"IsConfined","LONG")
+    gis_tools.resetField(fcOutputRawConfiningState,"IsConstric","SHORT")
 
     lyrConfinementStreamNetwork1 = gis_tools.newGISDataset("Layer","lyrStreamNetworkCenterline1")
     arcpy.MakeFeatureLayer_management(fcOutputRawConfiningState,lyrConfinementStreamNetwork1)
@@ -177,6 +179,9 @@ def main(fcInputStreamLineNetwork,
     arcpy.CalculateField_management(lyrConfinementStreamNetwork1,"Con_Type","'RIGHT'","PYTHON")
     arcpy.SelectLayerByAttribute_management(lyrConfinementStreamNetwork1,"NEW_SELECTION",""" "Con_LEFT" = 1 AND "Con_RIGHT" = 1""")
     arcpy.CalculateField_management(lyrConfinementStreamNetwork1,"Con_Type","'BOTH'","PYTHON")
+    arcpy.CalculateField_management(lyrConfinementStreamNetwork1,"IsConstric","1","PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrConfinementStreamNetwork1,"SWITCH_SELECTION")
+    arcpy.CalculateField_management(lyrConfinementStreamNetwork1,"IsConstric","0","PYTHON")
     arcpy.SelectLayerByAttribute_management(lyrConfinementStreamNetwork1,"NEW_SELECTION",""" "Con_LEFT" = 1 OR "Con_RIGHT" = 1""")
     arcpy.CalculateField_management(lyrConfinementStreamNetwork1,"IsConfined","1","PYTHON")
     arcpy.SelectLayerByAttribute_management(lyrConfinementStreamNetwork1,"SWITCH_SELECTION")
