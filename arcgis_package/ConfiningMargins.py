@@ -21,8 +21,8 @@ from os import path
 import arcpy
 import gis_tools
 import DividePolygonBySegment
-sys.path.append(sys.argv[0].rstrip("\\arcpy\\ConfiningMargins.py"))
-from sfr_metadata import Metadata
+# sys.path.append(sys.argv[0].rstrip("\\arcpy\\ConfiningMargins.py"))
+#from sfr_metadata import Metadata
 
 ## Updates
 # Shapefile support
@@ -40,12 +40,12 @@ def main(fcInputStreamLineNetwork,
     ##Prepare processing environments
     arcpy.AddMessage("Starting Confining Margins Tool")
 
-    mWriter = Metadata.MetadataWriter("Confining Margins","2.0")
-    mWriter.createRun()
-
-    mWriter.currentRun.addParameter("Stream Network",fcInputStreamLineNetwork)
-    mWriter.currentRun.addParameter("Valley Bottom Polygon",fcInputValleyBottomPolygon)
-    mWriter.currentRun.addParameter("Channel Polygon",fcInputChannelPolygon)
+    #mWriter = Metadata.MetadataWriter("Confining Margins","2.0")
+    # mWriter.createRun()
+    #
+    # mWriter.currentRun.addParameter("Stream Network",fcInputStreamLineNetwork)
+    # mWriter.currentRun.addParameter("Valley Bottom Polygon",fcInputValleyBottomPolygon)
+    # mWriter.currentRun.addParameter("Channel Polygon",fcInputChannelPolygon)
 
     # Create Confined Channel Polygon
     fcConfinedChannel = gis_tools.newGISDataset(scratchWorkspace,"ChannelConfined")
@@ -206,12 +206,12 @@ def main(fcInputStreamLineNetwork,
 
     #    arcpy.AddMessage("GNAT CON: Confinement Calculations Complete.")
 
-    mWriter.currentRun.addOutput("",fcOutputRawConfiningState)
-    mWriter.currentRun.addOutput("",fcOutputConfiningMargins)
-
-    mWriter.finalizeRun("Success")
-    pathOutput = arcpy.Describe(fcOutputConfiningMargins).path
-    mWriter.writeMetadataFile(path.join(pathOutput,"metadata.xml"))
+    # mWriter.currentRun.addOutput("",fcOutputRawConfiningState)
+    # mWriter.currentRun.addOutput("",fcOutputConfiningMargins)
+    #
+    # mWriter.finalizeRun("Success")
+    # pathOutput = arcpy.Describe(fcOutputConfiningMargins).path
+    # mWriter.writeMetadataFile(path.join(pathOutput,"metadata.xml"))
 
     return
 

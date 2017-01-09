@@ -1,14 +1,14 @@
 ﻿# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Name:        Confinement Tool                                               #
+# Name:        Stream and Valley Confinement Toolbox                          #
 # Purpose:     Tools for and calculating confinement on a stream              # 
-#              network or using a moving window  along the stream network     #  
+#              network or using a moving window along the stream network      #
 #                                                                             #
 # Authors:     Kelly Whitehead (kelly@southforkresearch.org)                  #
 #              South Fork Research, Inc                                       #
 #              Seattle, Washington                                            #
 #                                                                             #
 # Created:     2015-Jan-08                                                    #
-# Version:     1                                                              #
+# Version:     2.1                                                            #
 # Released:                                                                   #
 #                                                                             #
 # License:     Free to use.                                                   #
@@ -18,21 +18,137 @@
 
 # # Import Modules # #
 import arcpy
-from os import path
 import ConfiningMargins
 import MovingWindow
+import ConfinementProject
 
 class Toolbox(object):
     def __init__(self):
         """Define the toolbox (the name of the toolbox is the name of the
         .pyt file)."""
         self.label = "Confinement Toolbox"
-        self.alias = 'Confinement'
-        self.description = "Tools for generating Valley Confinement."
+        self.alias = ''
+        #self.description = "Tools for generating Valley Confinement."
 
         # List of tool classes associated with this toolbox
-        self.tools = [ConfingMarginTool,
-                      ConfinementCalculationTool]
+        self.tools = [ConfinementCalculationTool,
+                      ConfiningMarginTool,ConfinementProjectTool]
+                      #]
+
+
+class ConfinementProjectTool(object):
+    def __init__(self):
+        """Define the tool (tool name is the name of the class)."""
+        self.label = "New Confinement Project"
+        self.description = "Start a new Confinment Project. Tool Documentation: https://bitbucket.org/KellyWhitehead/geomorphic-network-and-analysis-toolbox/wiki/Tool_Documentation/MovingWindow"
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        """Define parameter definitions"""
+        param0 = arcpy.Parameter(
+            displayName="Project Name",
+            name="projectName",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+
+        param1 = arcpy.Parameter(
+            displayName="Project Folder",
+            name="projectFolder",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input")
+
+        #param2 = arcpy.Parameter(
+        #    displayName="Attribute Field (Confinement)",
+        #    name="fieldAttribute",
+        #    datatype="GPString",
+        #    parameterType="Required",
+        #    direction="Input")
+
+        #param3 = arcpy.Parameter(
+        #    displayName="Seed Point Distance",
+        #    name="dblSeedPointDistance",
+        #    datatype="GPDouble",
+        #    parameterType="Required",
+        #    direction="Input")
+        #param3.value = 50
+
+        #param4 = arcpy.Parameter(
+        #    displayName="Window Sizes",
+        #    name="inputWindowSizes",
+        #    datatype="GPDouble",
+        #    parameterType="Required",
+        #    direction="Input",
+        #    multiValue=True)
+        #param4.value = [50,100]
+
+        #param5 = arcpy.Parameter(
+        #    displayName="Output Workspace",
+        #    name="strOutputWorkspace",
+        #    datatype="DEWorkspace",
+        #    parameterType="Optional",
+        #    direction="Input",
+        #    category="Outputs")
+
+        #param6 = arcpy.Parameter(
+        #    displayName="Temp Workspace",
+        #    name="strTempWorkspace",
+        #    datatype="DEWorkspace",
+        #    parameterType="Optional",
+        #    direction="Input",
+        #    category="Outputs")
+        #param6.value = arcpy.env.scratchWorkspace
+
+        #param5.value = str(arcpy.env.scratchWorkspace)
+
+        params = [param0,param1]#,param2,param3,param4,param5,param6]
+        return params
+
+    def isLicensed(self):
+        """Set whether tool is licensed to execute."""
+        return True
+
+    def updateParameters(self, parameters):
+        """Modify the values and properties of parameters before internal
+        validation is performed.  This method is called whenever a parameter
+        has been changed."""
+        # if parameters[0].value:
+        #     if arcpy.Exists(parameters[0].value):
+        #         # Get Fields
+        #         fields = arcpy.Describe(parameters[0].value).fields
+        #         listFields = []
+        #         for f in fields:
+        #             listFields.append(f.name)
+        #         parameters[1].filter.list=listFields
+        #         if "BranchID" in listFields:
+        #             parameters[1].value="BranchID"
+        #         parameters[2].filter.list=listFields
+        #     else:
+        #         parameters[1].filter.list=[]
+        #         parameters[2].filter.list=[]
+        #         parameters[0].setErrorMessage(" Dataset does not exist.")
+        return
+
+    def updateMessages(self, parameters):
+        """Modify the messages created by internal validation for each tool
+        parameter.  This method is called after internal validation."""
+
+        # testProjected(parameters[0])
+        # testWorkspacePath(parameters[5])
+        # testWorkspacePath(parameters[6])
+        return
+
+    def execute(self, p, messages):
+        """The source code of the tool."""
+        reload(ConfinementProject)
+        from os import path
+        newConfinementProject = ConfinementProject.ConfinementProject()
+        newConfinementProject.create(p[0].valueAsText)
+
+        newConfinementProject.writeProjectXML(path.join(p[1].valueAsText,"ConfinementProject.xml"))
+
+        return
 
 class ConfinementCalculationTool(object):
     def __init__(self):
@@ -46,7 +162,7 @@ class ConfinementCalculationTool(object):
         param0 = arcpy.Parameter(
             displayName="Input Stream Network with Confinement",
             name="lineNetwork",
-            datatype="GPFeatureLayer", 
+            datatype="GPFeatureLayer",
             parameterType="Required",
             direction="Input")
         param0.filter.list = ["Polyline"]
@@ -61,7 +177,7 @@ class ConfinementCalculationTool(object):
         param2 = arcpy.Parameter(
             displayName="Attribute Field (Confinement)",
             name="fieldAttribute",
-            datatype="GPString", 
+            datatype="GPString",
             parameterType="Required",
             direction="Input")
 
@@ -151,7 +267,7 @@ class ConfinementCalculationTool(object):
                           p[6].valueAsText)
         return
 
-class ConfingMarginTool(object):
+class ConfiningMarginTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
         self.label = "Confining Margins Tool"
@@ -160,11 +276,11 @@ class ConfingMarginTool(object):
 
     def getParameterInfo(self):
         """Define parameter definitions"""
-        
+
         param0 = arcpy.Parameter(
             displayName="Input Stream Network",
             name="InputFCStreamNetwork",
-            datatype="GPFeatureLayer", 
+            datatype="GPFeatureLayer",
             parameterType="Required",
             direction="Input")
         param0.filter.list = ["Polyline"]
@@ -180,7 +296,7 @@ class ConfingMarginTool(object):
         param2 = arcpy.Parameter(
             displayName="Input Buffered Bankfull Channel Polygon",
             name="InputBankfullChannelPoly",
-            datatype="GPFeatureLayer", 
+            datatype="GPFeatureLayer",
             parameterType="Required",
             direction="Input")
         param2.filter.list = ["Polygon"]
@@ -203,7 +319,7 @@ class ConfingMarginTool(object):
         param5 = arcpy.Parameter(
             displayName="Scratch Workspace",
             name="InputTempWorkspace",
-            datatype="DEWorkspace", 
+            datatype="DEWorkspace",
             parameterType="Optional",
             direction="Input")
         param5.filter.list = ["Local Database"]
@@ -224,7 +340,7 @@ class ConfingMarginTool(object):
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
-        
+
         testProjected(parameters[0])
         testProjected(parameters[1])
         testProjected(parameters[2])
@@ -246,14 +362,14 @@ class ConfingMarginTool(object):
                             p[3].valueAsText,
                             p[4].valueAsText,
                             getTempWorkspace(p[5].valueAsText))
-        
+
         return
 
 # Other Functions # 
 def setEnvironmentSettings():
     arcpy.env.OutputMFlag = "Disabled"
     arcpy.env.OutputZFlag = "Disabled"
-     
+
     return
 
 def getTempWorkspace(strWorkspaceParameter):
@@ -264,7 +380,7 @@ def getTempWorkspace(strWorkspaceParameter):
        return strWorkspaceParameter
 
 def testProjected(parameter):
-    
+
     # Test Projection
     if parameter.value:
         if arcpy.Exists(parameter.value):
@@ -310,8 +426,8 @@ def testLayerSelection(parameter):
             if desc.dataType == "FeatureLayer":
                 if desc.FIDSet:
                     parameter.setWarningMessage("Input layer " + parameter.name + " contains a selection. Clear the selection in order to run this tool on all features in the layer.")
-    
-    return 
+
+    return
 
 def testWorkspacePath(parameterWorkspace):
 
