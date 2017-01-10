@@ -50,11 +50,11 @@ Requirements
 
 ***Raw Confining State***
 
-This is the name of a Polyline Feature Class that will be created in the GDB to store the raw confining state of the Stream Network.
+This is the name of a Polyline Feature Class that will be created in the FGDB to store the raw confining state of the Stream Network.
 
-> Note: This is does not contain the "Calculated Value" for confinement, even though this is the only required output for this tool. In order to calculate confinenemt, you must Segment the network and specify a value for the Output Confinement Calculated by Segments parameter.
+> Note: This is does not contain the "Calculated Value" for confinement, even though this is the only required output for this tool. In order to calculate confinement, you must Segment the network and specify a value for the Output Confinement Calculated by Segments parameter.
 
-* The feature class will be overwriten if it already exists.
+* The feature class will be overwritten if it already exists.
 * None of the Original Segments or their attributes are retained in this feature class.
 
 Attribute Fields:
