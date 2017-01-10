@@ -1,8 +1,5 @@
----
-title: Confinement Project
----
 
-# Introduction
+# Confinement Project
 
 While the confinement tool can be used on any GIS data, a preferred workflow is to use a Confinement Project. A confinement project is simply a managed folder structure with an accompanying XML file. The confinement tools are structured to use this XML file to find data and keep a record of all outputs and analysis for a particular set of confinement data. 
 

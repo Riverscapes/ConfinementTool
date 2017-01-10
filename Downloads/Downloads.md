@@ -1,15 +1,20 @@
----
-title: Downloads
----
-# Versions #
 
-+ **[Version 0.2.0](ConfinementToolbox_0.2.0.zip)** 2016-02-24
-	+ Confinement Tool
-		+ New "Converged Margins" Results Method supports much quicker processing of Line method calculation 
-		+ Retains original method of Confinement calculations
-		+ Support for Shapefile Outputs (Field Names shortened)
+# Downloads and Release Notes #
 
-+ **[Version 0.1.0](ConfinementTool_20160118.zip)** 2016-01-18
+**[Version 2.1.01 (beta)](ConfinementTool_2.1.01_Beta.zip)** 2017-JAN-09
+	
+	+ Roll out of "Confinement Project"
+	+ Calculate Constriction Metric
+	+ Reconfigured Toolbox Structure to support projects and stand alone calculations
+
+**[Version 0.2.0](ConfinementToolbox_0.2.0.zip)** 2016-02-24
+
+	+ New "Converged Margins" Results Method supports much quicker processing of Line method calculation 
+	+ Retains original method of Confinement calculations
+	+ Support for Shapefile Outputs (Field Names shortened)
+
+**[Version 0.1.0](ConfinementTool_20160118.zip)** 2016-01-18
+
 	+ Initial Pull of Confinement and Moving Window Tools from GNAT
 
 # Installation #
