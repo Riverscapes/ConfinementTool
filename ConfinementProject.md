@@ -51,7 +51,7 @@ For more information on what this tool is doing, refer to the documentation on t
 
 1. Make sure you have loaded at least one of each of the three inputs from step 2.
 2. In ArcMap navigate to Confinement Toolbox / Confinement Tools /  Confining Margins Tool in ArcToolbox.
-	1. Specify the **Project.XML** file.
+	1. Specify the **Project.XML** file. The Tool window will enter "Project Mode".
 	2. Specify the ** Name of the new Realization**. The tool will check if there is already a realization with the specified name already stored in the project.
 	3. Specify the Three Inputs.
 	** Please navigate within the project folder to find these inputs. *A future version of the tool will limit these inputs for you.***
@@ -70,10 +70,19 @@ An Analysis tool will calculate Confinement  using one of the three tools in the
 ### Moving Window
 This section describes how to generate a Moving Window Analysis within a Project. For more information on what a Moving Window Analysis is, see [Moving Window Tool](MovingWindowTool).
 
+1. Make sure you have generated at least one Confinement Realization.
+2. In ArcMap navigate to Confinement Toolbox / Confinement Tools / Analysis / Moving Window Confinement Tool in ArcToolbox.
+	1. Specify the **Project.XML** file. The Tool window will enter "Project Mode".
+	2. From the Dropdown, select the Realization you want to base your analysis on.
+		1. The Tool will automatically use the correct Stream Network Input from the specified Realization.
+	2. Specify a **Dissolve** Field that is used to make continuous streaches of the stream. For Example, GNAT uses a "Stream Branch ID" system. 
+		> *** There is currently a bug in the workflow that does not retain existing fields in the original input stream network. This will be fixed for the next release of the confinement tool.***
+	4. The tool will attempt to find the correct confinement and Constriction fields.
+	5.  Specify a seed Distance, and specify the window size(s) you want to use.
+	6.  In "Project Mode", the output workspace is managed for you, but you make specify a Temporary workspace.
+	7.  Click OK to run the tool.
 
-
-
-
+![](Images/MovingWindowToolWindow.PNG)
 
 ### Fixed Segments
 ***This tool will be supported in the next tool release.***
