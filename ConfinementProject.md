@@ -45,7 +45,7 @@ Do not manually add data to the project folder. You will do this as a tool suppo
 
 ## Generate a Confinement Realization (Confining Margins)
 
-With the inputs loaded into the project, the next step is to generate the Raw Confining State and Confining Margins from the inputs. Collectively this step is called a "Confinement Realization" within the project. You may have more than one Realizations stored in a Confinement Project.
+With the inputs loaded into the project, the next step is to generate the Raw Confining State and Confining Margins from the inputs. Collectively this step is called a "Confinement Realization" within the project. You may have more than one Realization stored in a Confinement Project.
 
 For more information on what this tool is doing, refer to the documentation on the [Confining Margins Tool](ConfinementTool).
 
