@@ -33,7 +33,7 @@ Do not manually add data to the project folder. You will do this as a tool suppo
 	2. Specify the following three inputs to the project:
 		* Stream Network
 		* Channel/Bankfull Buffer Polygon
-		* Valley Bottom Poygon
+		* Valley Bottom Polygon
 	> These inputs may be of any GIS vector format (as recognized by ArcGIS), however when they are imported into the project, they will stored as Shapefiles (.shp). This should not have any affect on the data other than limiting the field names to 10 characters. 	
 	2. Click OK to import the inputs into the project.
 	
