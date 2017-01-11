@@ -2,13 +2,13 @@ The Confinement Toolbox contains the Confinement Tool and Moving Window Tool for
 
 ## Download #
  
-**[Current Version (2.1.01 (beta))](downloads/ConfinementTool_2.1.01_Beta.zip)**  released on 2017-JAN-09
+**[Current Version (2.1.01 (beta))](Downloads/ConfinementTool_2.1.01_Beta.zip)**  released on 2017-JAN-09
 
 	+ Roll out of "Confinement Project"
 	+ Calculate Constriction Metric
 	+ Reconfigured Toolbox Structure to support projects and stand alone calculations
 
-[Previous Versions and Release Notes](downloads/Downloads)
+[Previous Versions and Release Notes](Downloads/Releases)
 
 ### Installation
 
