@@ -8,7 +8,7 @@ The Confinement Toolbox contains the Confinement Tool and Moving Window Tool for
 	+ Calculate Constriction Metric
 	+ Reconfigured Toolbox Structure to support projects and stand alone calculations
 
-[Previous Versions and Release Notes](Downloads/Releases)
+[Previous Versions and Release Notes](Releases)
 
 ### Installation
 
