@@ -1,3 +1,8 @@
+While the confinement tool can be used on any GIS data, a preferred workflow is to use a Confinement Project. A confinement project is simply a managed folder structure with an accompanying XML file. The confinement tools are structured to use this XML file to find data and keep a record of all outputs and analysis for a particular set of confinement data. 
+
+A confinement project is also structured to work with the Riverscapes Analyst Toolbar and Data Warehouse. If data is to be included in this system, then it must be processed as a Confinement Project.
+
+Confinement Projects must be set up at the start of processing. There are currently no tools to convert previous results into a confinement project.
 
 
 - Project
