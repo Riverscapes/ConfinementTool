@@ -7,7 +7,7 @@ Tools
   * Step 1 - [Enter Project Mode](https://github.com/SouthForkResearch/ConfinementTool/wiki/ConfinementProject)
   * Step 2 - Load Data
   * Step 2 - Generate confining margins 
-  * Step 3 - Calculate Confinement along segments (analysis realizations)
+  * Step 3 - [Calculate Confinement along segments] (https://github.com/SouthForkResearch/ConfinementTool/wiki/Calculate-Confinement)
   
 * Non-Project Mode
     * 
