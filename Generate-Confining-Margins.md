@@ -1,4 +1,4 @@
-## Generate Confining Margins (Confinement Realization)
+### Confinement Realization
 
 With the inputs loaded into the project, the next step is to generate the Raw Confining State and Confining Margins from the inputs. Collectively this step is called a "Confinement Realization" within the project. You may have more than one Realization stored in a Confinement Project.
 
