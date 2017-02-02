@@ -1,5 +1,3 @@
-## Load Input Datasets to Project
-
 1. In order to generate confinement within a project, you must first load the three input files to the project.
 2. In ArcMap navigate to Confinement Toolbox / Confinement Project Management /  Load Input Datasets in ArcToolbox.
 	1. Specify the Project.xml file created in step 1.
