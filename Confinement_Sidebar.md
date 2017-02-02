@@ -2,7 +2,7 @@
 
 [Download and Installation](https://github.com/SouthForkResearch/confinementtool/wiki/Download-and-Installation)
 
-Tools
+Using Confinement Tools
 * [Project Mode](https://github.com/SouthForkResearch/ConfinementTool/wiki/About-Confinement-Projects)
   * Step 1 - [Enter Project Mode](https://github.com/SouthForkResearch/ConfinementTool/wiki/ConfinementProject)
   * Step 2 - [Load Input Datasets](https://github.com/SouthForkResearch/ConfinementTool/wiki/Load-Input-Datasets)
