@@ -1,7 +1,3 @@
-
-
-# Using a Confinement Project
-Version 2.1.01
 ## Create a New Confinement Project
 1. Create an empty folder on your system that will store the confinement project. Input datasets will be copied to this location through the project workflow
 
