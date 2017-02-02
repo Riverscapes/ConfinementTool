@@ -19,13 +19,10 @@ The Confinement Toolbox is provided as a zip file containing a .pyt file and sup
 3. Add the .pyt file to Arc toolbox as you would any other Geoprocesssing Toolbox.
 
 
-# Confinement Documentation #
-
-## Project Mode
+## Using the Confinement Tools
 
 The Confinement Tool now has a **[Project Mode](ConfinementProject)** to support confinement analysis organization and the RiverScapes Program.
 
-## Confinement Tools
 The tools can also be used in a "stand-alone" analysis workflow. 
 
 - **[Confining Margins Tool](ConfinementTool)** Generate confining margins and calculate Confinement values for a stream network.
