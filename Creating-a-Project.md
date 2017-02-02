@@ -1,4 +1,3 @@
-## Create a New Confinement Project
 1. Create an empty folder on your system that will store the confinement project. Input datasets will be copied to this location through the project workflow
 
 2. Open ArcMap and navigate to Confinement Toolbox / Confinement Project Management / Create a New Confinement Project in ArcToolbox.
