@@ -1,6 +1,8 @@
 
 # Downloads and Release Notes #
 
+**[Version 2.1.02](Downloads/ConfinementTool_2.1.02.zip) **2017-MAR-03 
+
 **[Version 2.1.01 (beta)](Downloads/ConfinementTool_2.1.01_Beta.zip)** 2017-JAN-09
 	
 	+ Roll out of "Confinement Project"

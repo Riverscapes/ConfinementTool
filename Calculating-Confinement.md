@@ -2,11 +2,9 @@ A confinement analysis must be associated with one and only one "Realization." I
 
 An Analysis tool will calculate Confinement  using one of the three tools in the Analysis toolset. Each are described below.
 
-### Fixed Segments
-***This tool will be supported in the next tool release.***
-
 ### Custom Segments
-***This tool will be supported in the next tool release.***
+
+
 
 ### Moving Window
 This section describes how to generate a Moving Window Analysis within a Project. For more information on what a Moving Window Analysis is, see [Moving Window Tool](MovingWindowTool).

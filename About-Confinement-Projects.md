@@ -2,9 +2,14 @@ While the confinement tool can be used on any GIS data, a preferred workflow is 
 
 A confinement project is also structured to work with the Riverscapes Analyst Toolbar and Data Warehouse. If data is to be included in this system, then it must be processed as a Confinement Project.
 
+Confinement Projects will copy input data into the project itself. All data within a project uses the Shapefile format. 
+
 Confinement Projects must be set up at the start of processing. There are currently no tools to convert previous results into a confinement project.
 
+To get started, proceed to [Step 1 - Creating a Confinement Project](Create-a-Project).
 
+
+## Confinement Project Outline
 - Project
 	- Project MetaData
 		- Operator

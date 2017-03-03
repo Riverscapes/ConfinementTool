@@ -2,7 +2,7 @@ The Confinement Toolbox contains the Confinement Tool and Moving Window Tool for
 
 ## Download #
  
-**[Current Version (2.1.01 (beta))](Downloads/ConfinementTool_2.1.01_Beta.zip)**  released on 2017-JAN-09
+Latest: **[Version 2.1.02](Downloads/ConfinementTool_2.1.02.zip) ** released on 2017-MAR-03 
 
 	+ Roll out of "Confinement Project"
 	+ Calculate Constriction Metric
@@ -18,14 +18,16 @@ The Confinement Toolbox is provided as a zip file containing a .pyt file and sup
 2. Open ArcGIS.
 3. Add the .pyt file to Arc toolbox as you would any other Geoprocesssing Toolbox.
 
-
 ## Using the Confinement Tools
 
-The Confinement Tool now has a **[Project Mode](ConfinementProject)** to support confinement analysis organization and the RiverScapes Program.
+### Project Mode
+The Confinement Tool has a **[Project Mode](ConfinementProject)** to support confinement analysis organization and the RiverScapes Program.
 
-The tools can also be used in a "stand-alone" analysis workflow. 
+### Stand-Alone Tools
+The primary Confinement Tools can also be used in a "stand-alone" analysis workflow. 
 
 - **[Confining Margins Tool](ConfinementTool)** Generate confining margins and calculate Confinement values for a stream network.
+- **[Confinement By Segments]()** Calculate confinement along *pre-existing* segments in the stream network.
 - **[Moving Window Tool](MovingWindowTool)** Tool for calculating confinement from a set of moving window segments.
 
 # Acknowledgements
