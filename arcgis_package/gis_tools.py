@@ -51,14 +51,17 @@ def getGISDataset(workspace,inputDatasetName):
     if workspace == "Layer":
         inputDataset = inputDatasetName
         if arcpy.Exists(inputDataset):
-            return inputDatset
+            return inputDataset
     else:
         inputDataset = workspace + "\\" + inputDatasetName
         if arcpy.Exists(inputDataset):
             return inputDataset
 
 def resetField(inTable,FieldName,FieldType,TextLength=0):
-    """clear or create new field.  FieldType = TEXT, FLOAT, DOUBLE, SHORT, LONG, etc."""
+    """clear or create new field.  FieldType = TEXT, FLOAT, DOUBLE, SHORT, LONG, etc.
+
+    :return: str field name
+    """
     
     if arcpy.Describe(inTable).dataType == "ShapeFile":
         FieldName = FieldName[:10]

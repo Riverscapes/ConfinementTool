@@ -26,11 +26,25 @@ class ConfinementProject(object):
     def addProjectMetadata(self,Name,Value):
         self.ProjectMetadata[Name] = Value
 
-    def addInputDataset(self, name, relativePath,sourcePath):
+    def addInputDataset(self, name, id, relativePath, sourcePath):
 
-        newInputDataset = InputDataset()
+        newInputDataset = dataset()
         newInputDataset.create(name,relativePath,origPath=sourcePath)
+
+        int = len(self.InputDatasets)
+        newInputDataset.id = id
         self.InputDatasets[newInputDataset.name] = newInputDataset
+
+    def get_dataset_id(self,absfilename):
+
+        relpath = path.relpath(absfilename,self.projectPath)
+        id = ""
+
+        for name,dataset in self.InputDatasets.iteritems():
+            if relpath == dataset.relpath:
+                id = dataset.id
+
+        return id
 
     def loadProjectXML(self,XMLpath):
 
@@ -47,7 +61,7 @@ class ConfinementProject(object):
 
         # Load Input Datasets
         for inputDatasetXML in root.findall("./Inputs/Vector"):
-            inputDataset = InputDataset()
+            inputDataset = dataset()
             inputDataset.createFromXMLElement(inputDatasetXML)
             self.InputDatasets[inputDataset.id] = inputDataset
 
@@ -64,6 +78,9 @@ class ConfinementProject(object):
         return
 
     def addRealization(self, realization):
+
+        intRealizations = len(self.Realizations)
+        realization.id = "Confinement_" + str(intRealizations + 1)
 
         self.Realizations[realization.name] = realization
         return
@@ -113,36 +130,46 @@ class ConfinementRealization(object):
         self.productVersion = ''
         self.guid = ''
         self.name = ''
+        self.id = 'Not_Assigned'
 
         self.StreamNetwork = ''
         self.ValleyBottom = ''
         self.ChannelPolygon = ''
-        self.listSegmentedNetworks = []
 
-        self.OutputConfiningMargins = OutputDataset()
-        self.OutputRawConfiningState = OutputDataset()
+        self.OutputConfiningMargins = dataset()
+        self.OutputRawConfiningState = dataset()
 
         self.analyses = {}
 
-    def create(self, name,StreamNetwork,ValleyBottom,ChannelPolygon,OutputConfiningMargins,OutputRawConfiningState):
+    def create(self, name, refStreamNetwork, refValleyBottom, refChannelPolygon, OutputConfiningMargins, OutputRawConfiningState):
+        """
+        :param str name:
+        :param str refStreamNetwork:
+        :param str refValleyBottom:
+        :param str refChannelPolygon:
+        :param dataset OutputConfiningMargins:
+        :param dataset OutputRawConfiningState:
+        :return: none
+        """
+
         self.promoted = ''
         self.dateCreated = ''
         self.productVersion = ''
         self.guid = ''
         self.name = name
 
-        StreamNetwork.type = "StreamNetwork"
-        ValleyBottom.type = "ValleyBottom"
-        ChannelPolygon.type = "ChannelPolygon"
+        # StreamNetwork.type = "StreamNetwork"
+        # ValleyBottom.type = "ValleyBottom"
+        # ChannelPolygon.type = "ChannelPolygon"
 
         OutputConfiningMargins.type = "ConfiningMargins"
         OutputConfiningMargins.xmlSourceType = "ConfiningMargins"
         OutputRawConfiningState.type = "RawConfiningState"
         OutputRawConfiningState.xmlSourceType = "RawConfiningState"
 
-        self.StreamNetwork = StreamNetwork
-        self.ValleyBottom = ValleyBottom
-        self.ChannelPolygon = ChannelPolygon
+        self.StreamNetwork = refStreamNetwork
+        self.ValleyBottom = refValleyBottom
+        self.ChannelPolygon = refChannelPolygon
 
         self.OutputConfiningMargins = OutputConfiningMargins
         self.OutputRawConfiningState = OutputRawConfiningState
@@ -153,14 +180,15 @@ class ConfinementRealization(object):
         self.promoted =  xmlElement.get("promoted")
         self.dateCreated = xmlElement.get("dateCreated")
         self.productVersion = xmlElement.get('productVersion')
+        self.id = xmlElement.get('id')
         self.guid = xmlElement.get('guid')
+
         self.name = xmlElement.find('Name').text
 
         # Pull Inputs
-        self.ValleyBottom = dictInputDatasets[xmlElement.find('./Inputs/ValleyBottom').get('ref')]
-        self.ChannelPolygon = dictInputDatasets[xmlElement.find('./Inputs/ChannelPolygon').get('ref')]
-        self.StreamNetwork = dictInputDatasets[xmlElement.find('./Inputs/StreamNetwork').get('ref')]
-        #TODO pull segmented networks if they exist
+        self.ValleyBottom = xmlElement.find('./Inputs/ValleyBottom').get('ref')
+        self.ChannelPolygon = xmlElement.find('./Inputs/ChannelPolygon').get('ref')
+        self.StreamNetwork = xmlElement.find('./Inputs/StreamNetwork').get('ref')
 
         # Pull Outputs
         self.OutputConfiningMargins.createFromXMLElement(xmlElement.find("./Outputs/ConfiningMargins"))
@@ -179,6 +207,7 @@ class ConfinementRealization(object):
         attributes = {}
         attributes['promoted'] = self.promoted
         attributes['dateCreated'] = self.dateCreated
+        attributes['id'] = self.id
         if self.productVersion:
             attributes['productVersion'] = self.productVersion
         if self.guid:
@@ -192,12 +221,11 @@ class ConfinementRealization(object):
         # Realization Inputs
         nodeRealizationInputs = ET.SubElement(nodeRealization,"Inputs")
         nodeValleyBottom = ET.SubElement(nodeRealizationInputs,"ValleyBottom")
-        nodeValleyBottom.set("ref",self.ValleyBottom.name)
+        nodeValleyBottom.set("ref",self.ValleyBottom)
         nodeChannelPolygon = ET.SubElement(nodeRealizationInputs,"ChannelPolygon")
-        nodeChannelPolygon.set("ref",self.ChannelPolygon.name)
+        nodeChannelPolygon.set("ref",self.ChannelPolygon)
         nodeStreamNetwork = ET.SubElement(nodeRealizationInputs,"StreamNetwork")
-        nodeStreamNetwork.set('ref',self.StreamNetwork.name)
-        # TODO Add Custom Segmented Networks if exists
+        nodeStreamNetwork.set('ref',self.StreamNetwork)
 
         nodeOutputs = ET.SubElement(nodeRealization,"Outputs")
         self.OutputRawConfiningState.getXMLNode(nodeOutputs)
@@ -222,24 +250,16 @@ class ConfinementRealization(object):
 
         self.analyses[analysisName] = analysis
 
-    def newAnalysisFixedSegments(self,analysisName,paramSegmentSize,outputSegments):
-        analysis = ConfinementAnalysis()
-        analysis.create(analysisName,"FixedSegments")
 
-        analysis.parameters["SegmentSize"] = paramSegmentSize
-        analysis.outputDatasets["FixedSegmentFile"] = outputSegments
-
-        self.analyses[analysisName] = analysis
-        return
-
-
-    def newAnalysisCustomSegments(self,analysisName):
+    def newAnalysisSegmentedNetwork(self, analysisName,paramFieldSegments,paramFieldConfinement,paramFieldConstriction,outputSegmentedConfinement):
 
         analysis = ConfinementAnalysis()
-        analysis.create(analysisName, "CustomSegments")
+        analysis.create(analysisName, "SegmentedNetwork")
 
-        # ToDO Custom Segment
-        # Special case, need to add segment as input to realization, and input datasets??!!
+        analysis.parameters["SegmentField"] = paramFieldSegments
+        analysis.parameters["ConfinementField"] = paramFieldConfinement
+        analysis.parameters["ConstrictionField"] = paramFieldConstriction
+        analysis.outputDatasets["SegmentedConfinement"] = outputSegmentedConfinement
 
         self.analyses[analysisName] = analysis
 
@@ -268,7 +288,7 @@ class ConfinementAnalysis(object):
             self.parameters[param.get('name')] = param.text
 
         for output in xmlElement.findall("./Outputs/*"):
-            outputDS = OutputDataset()
+            outputDS = dataset()
             outputDS.createFromXMLElement(output)
             self.outputDatasets[outputDS.name] = outputDS
 
@@ -299,26 +319,27 @@ class ConfinementAnalysis(object):
         return xmlNode
 
 
-class InputDataset(object):
+class dataset(object):
 
     def __init__(self):
-        self.id = '' # also ref
+        self.id = 'NotAssinged' # also ref
         self.name = ''
         self.guid = ''
         self.type = ''
         self.relpath = ''
-        self.meta = ""
-        self.origPath = ""
+        self.metadata = {}
 
-    def create(self, name, relpath, inputtype="Vector",guid='',origPath=""):
+    def create(self, name, relpath, type="Vector",guid='',origPath=""):
 
         self.name = name # also ref
         self.guid = guid
-        self.type = inputtype
+        self.type = type
         self.relpath = relpath
-        self.origPath = origPath
 
-        self.id = name # TODO make this unique!!!!
+        self.id = "NotAssigned" # TODO make this unique!!!!
+
+        if origPath:
+            self.metadata["origPath"] = origPath
 
     def createFromXMLElement(self, xmlElement):
 
@@ -327,9 +348,10 @@ class InputDataset(object):
         self.name = xmlElement.find('Name').text
         self.relpath = xmlElement.find("Path").text
 
-        for nodeMetaOrigin in xmlElement.findall("MetaData/Meta"):
-            if nodeMetaOrigin.get('name') == "original_path":
-                self.origPath = nodeMetaOrigin.text
+        self.type = xmlElement.tag
+
+        for nodeMeta in xmlElement.findall("./MetaData/Meta"):
+            self.metadata[nodeMeta.get('name')] = nodeMeta.text
 
     def getXMLNode(self,xmlNode):
 
@@ -340,69 +362,80 @@ class InputDataset(object):
             attributes['Guid'] = self.guid
 
         # Generate Node
-        nodeInputDataset = ET.SubElement(xmlNode,"Vector",attributes)
+        nodeInputDataset = ET.SubElement(xmlNode,self.type,attributes)
 
         nodeInputDatasetName = ET.SubElement(nodeInputDataset, "Name")
         nodeInputDatasetName.text = self.name
         nodeInputDatasetPath = ET.SubElement(nodeInputDataset,"Path")
         nodeInputDatasetPath.text = self.relpath
 
-        if self.origPath:
-            nodeInputDatasetMeta = ET.SubElement(nodeInputDataset,"MetaData")
-            nodeInputDatasetOrigPath = ET.SubElement(nodeInputDatasetMeta,"Meta",{"name":"original_path"})
-            nodeInputDatasetOrigPath.text = self.origPath
+        if self.metadata:
+            nodeInputDatasetMetaData = ET.SubElement(nodeInputDataset,"MetaData")
+            for metaName, metaValue in self.metadata.iteritems():
+                nodeInputDatasetMeta = ET.SubElement(nodeInputDatasetMetaData,"Meta",{"name":metaName})
+                nodeInputDatasetMeta.text = metaValue
 
         return xmlNode
 
     def absolutePath(self,projectPath):
 
-        return path.join(projectPath,self.relpath,self.name) + '.shp'
-
-
-class OutputDataset(object):
-
-    def __init__(self):
-        self.name = ''
-        self.type = ''
-        self.relpath = ''
-        self.xmlSourceType = "Vector"
-
-    def create(self, name, relpath, outputtype="Vector"):
-        self.name = name # also ref
-        self.type = outputtype
-        self.relpath = relpath
-
-    def createFromXMLElement(self, xmlElement):
-        self.name = xmlElement.find('Name')
-        self.relpath = xmlElement.find("Path").text
-
-        if xmlElement.tag == "Vector":
-            self.type = xmlElement.find("./MetaData/Meta[@name='Type']").text
-        else:
-            self.type = xmlElement.tag
-            self.xmlSourceType = xmlElement.tag
-        return
-
-    def absolutePath(self,projectPath):
         return path.join(projectPath,self.relpath)
 
-    def getXMLNode(self,xmlNode):
 
-        nodeOutput = ET.SubElement(xmlNode,self.xmlSourceType)
-        nodeOutputName = ET.SubElement(nodeOutput,"Name")
-        nodeOutputName.text = self.name
-        nodeOutputPath = ET.SubElement(nodeOutput,"Path")
-        nodeOutputPath.text = self.relpath
-
-        if self.xmlSourceType == "Vector":
-            nodeTypeMetaData = ET.SubElement(nodeOutput,"MetaData")
-            nodeTypeMeta = ET.SubElement(nodeTypeMetaData,"Meta",{"name":"Type"})
-            nodeTypeMeta.text = self.type
-
-        def absolutePath(self, projectPath):
-            return path.join(projectPath, self.relpath, self.name) + '.shp'
+# class OutputDataset(object):
+#
+#     def __init__(self):
+#         self.name = ''
+#         self.type = ''
+#         self.relpath = ''
+#
+#
+#     def create(self, name, relpath, outputtype="Vector"):
+#         self.name = name # also ref
+#         self.type = outputtype
+#         self.relpath = relpath
+#
+#     def createFromXMLElement(self, xmlElement):
+#         self.name = xmlElement.find('Name')
+#         self.relpath = xmlElement.find("Path").text
+#
+#         if xmlElement.tag == "Vector":
+#             self.type = xmlElement.find("./MetaData/Meta[@name='OutputType']").text
+#         else:
+#             self.type = xmlElement.tag
+#             self.xmlSourceType = xmlElement.tag
+#         return
+#
+#     def absolutePath(self,projectPath):
+#         return path.join(projectPath,self.relpath)
+#
+#     def getXMLNode(self,xmlNode):
+#
+#         nodeOutput = ET.SubElement(xmlNode,self.xmlSourceType)
+#         nodeOutputName = ET.SubElement(nodeOutput,"Name")
+#         nodeOutputName.text = self.name
+#         nodeOutputPath = ET.SubElement(nodeOutput,"Path")
+#         nodeOutputPath.text = self.relpath
+#
+#         if self.xmlSourceType == "Vector":
+#             nodeTypeMetaData = ET.SubElement(nodeOutput,"MetaData")
+#             nodeTypeMeta = ET.SubElement(nodeTypeMetaData,"Meta",{"name":"Type"})
+#             nodeTypeMeta.text = self.type
+#
+#         def absolutePath(self, projectPath):
+#             return path.join(projectPath, self.relpath, self.name) + '.shp'
 
 # Other Functions ##
+
+def get_input_id(inpath,strInputName):
+
+    import glob
+
+    int_id = len(glob.glob(path.join(inpath, strInputName + "*"))) + 1
+
+    return strInputName + str(int_id).zfill(3)
+
+
 def indent(elem, level=0, more_sibs=False):
     """ Pretty Print XML Element
     Source: http://stackoverflow.com/questions/749796/pretty-printing-xml-in-python

@@ -22,6 +22,7 @@ import arcpy
 from arcgis_package import ConfiningMargins
 from arcgis_package import MovingWindow
 import ConfinementProject
+from arcgis_package import ConfinementSegments
 
 
 class Toolbox(object):
@@ -34,8 +35,8 @@ class Toolbox(object):
 
         # List of tool classes associated with this toolbox
         self.tools = [MovingWindowConfinementTool,
-                      CustomSegmentConfinementTool,
-                      FixedSegmentConfinementTool,
+                      SegmentedNetworkConfinementTool,
+                      #FixedSegmentConfinementTool,
                       ConfiningMarginTool,
                       ConfinementProjectTool,
                       LoadInputsTool]
@@ -133,10 +134,19 @@ class LoadInputsTool(object):
 
     def getParameterInfo(self):
         """Define parameter definitions"""
-        params =  [paramProjectXML,
-                   paramStreamNetwork,
-                   paramChannelPolygon,
-                   paramValleyBottom]
+
+        p1 = paramStreamNetwork,
+        p2 = paramChannelPolygon,
+        p3 = paramValleyBottom
+
+        p1.Type = "Optional"
+        p2.Type = "Optional"
+        p3.Type = "Optional"
+
+        params = [paramProjectXML,
+                  p1,
+                  p2,
+                  p3]
 
         return params
 
@@ -165,34 +175,58 @@ class LoadInputsTool(object):
         newConfinementProject.loadProjectXML(p[0].valueAsText)
 
         pathProject = arcpy.Describe(p[0].valueAsText).path
-        pathInputs = pathProject + "\\Inputs"
-        pathStreamNetworks = pathInputs + "\\StreamNetworks"
-        pathChannelPolygons = pathInputs + "\\ChannelPolygons"
-        pathValleyBottoms = pathInputs + "\\ValleyBottoms"
-
-        nameStreamNetwork = arcpy.Describe(p[1].valueAsText).basename
-        nameChannelPolygon = arcpy.Describe(p[2].valueAsText).basename
-        nameValleyBottom = arcpy.Describe(p[3].valueAsText).basename
 
         # Create Project Paths if they do not exist
+        pathInputs = pathProject + "\\Inputs"
         if not arcpy.Exists(pathInputs):
             makedirs(pathInputs)
-        if not arcpy.Exists(pathStreamNetworks):
-            makedirs(pathStreamNetworks)
-        if not arcpy.Exists(pathChannelPolygons):
-            makedirs(pathChannelPolygons)
-        if not arcpy.Exists(pathValleyBottoms):
-            makedirs(pathValleyBottoms)
 
-        # Copy Inputs to Folder/convert to SHP
-        arcpy.FeatureClassToFeatureClass_conversion(p[1].valueAsText,pathStreamNetworks,nameStreamNetwork)
-        arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText,pathChannelPolygons,nameChannelPolygon)
-        arcpy.FeatureClassToFeatureClass_conversion(p[3].valueAsText,pathValleyBottoms,nameValleyBottom)
 
-        # Add input to the confinement project object
-        newConfinementProject.addInputDataset(nameStreamNetwork,path.relpath(pathStreamNetworks,pathProject),p[1].valueAsText)
-        newConfinementProject.addInputDataset(nameChannelPolygon,path.relpath(pathChannelPolygons,pathProject),p[2].valueAsText)
-        newConfinementProject.addInputDataset(nameValleyBottom,path.relpath(pathValleyBottoms,pathProject),p[3].valueAsText)
+        # KMW - The following is a lot of repeated code for each input. It contains file and folder creation and copying, rather than useing the project module to do this. This could be streamlined in the future, but
+        # is working at the moment.
+        if p[1].valueAsText: # Stream Network Input
+            pathStreamNetworks = pathInputs + "\\StreamNetworks"
+            nameStreamNetwork = arcpy.Describe(p[1].valueAsText).basename
+            if not arcpy.Exists(pathStreamNetworks):
+                makedirs(pathStreamNetworks)
+            id_streamnetwork = ConfinementProject.get_input_id(pathStreamNetworks, "StreamNetwork")
+            pathStreamNetworkID = path.join(pathStreamNetworks, id_streamnetwork)
+            makedirs(pathStreamNetworkID)
+            arcpy.FeatureClassToFeatureClass_conversion(p[1].valueAsText, pathStreamNetworkID, nameStreamNetwork)
+            newConfinementProject.addInputDataset(nameStreamNetwork,
+                                                  id_streamnetwork,
+                                                  path.join(path.relpath(pathStreamNetworkID, pathProject),
+                                                            nameStreamNetwork) + ".shp",
+                                                  p[1].valueAsText)
+
+        if p[2].valueAsText: # Channel Polygon
+            pathChannelPolygons = pathInputs + "\\ChannelPolygons"
+            nameChannelPolygon = arcpy.Describe(p[2].valueAsText).basename
+            if not arcpy.Exists(pathChannelPolygons):
+                makedirs(pathChannelPolygons)
+            id_channelpolygon = ConfinementProject.get_input_id(pathChannelPolygons, "ChannelPolygon")
+            pathChannelPolygonID = path.join(pathChannelPolygons,id_channelpolygon)
+            makedirs(pathChannelPolygonID)
+            arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText, pathChannelPolygonID, nameChannelPolygon)
+            newConfinementProject.addInputDataset(nameChannelPolygon,
+                                                  id_channelpolygon,
+                                                  path.join(path.relpath(pathChannelPolygonID, pathProject),
+                                                            nameChannelPolygon) + ".shp",
+                                                  p[2].valueAsText)
+
+        if p[3].valueAsText: # Valley  Bottom
+            pathValleyBottoms = pathInputs + "\\ValleyBottoms"
+            nameValleyBottom = arcpy.Describe(p[3].valueAsText).basename
+            if not arcpy.Exists(pathValleyBottoms):
+                makedirs(pathValleyBottoms)
+            id_valleybottom = ConfinementProject.get_input_id(pathValleyBottoms,"ValleyBottom")
+            pathValleyBottomID = path.join(pathValleyBottoms,id_valleybottom)
+            makedirs(pathValleyBottomID)
+            arcpy.FeatureClassToFeatureClass_conversion(p[3].valueAsText,pathValleyBottomID,nameValleyBottom)
+            newConfinementProject.addInputDataset(nameValleyBottom,
+                                                  id_valleybottom,
+                                                  path.join(path.relpath(pathValleyBottomID,pathProject),nameValleyBottom) + ".shp",
+                                                  p[3].valueAsText)
 
         # Write new XML
         newConfinementProject.writeProjectXML(p[0].valueAsText)
@@ -353,31 +387,37 @@ class ConfiningMarginTool(object):
             newConfinementProject = ConfinementProject.ConfinementProject()
             newConfinementProject.loadProjectXML(p[0].valueAsText)
 
-            inputValleyBottom = ConfinementProject.InputDataset()
-            inputValleyBottom.create(arcpy.Describe(p[3].valueAsText).basename,p[3].valueAsText)
+            # Retain if we want to reuse this - do we create inputs here??
+            # inputValleyBottom = ConfinementProject.dataset()
+            # inputValleyBottom.create(arcpy.Describe(p[3].valueAsText).basename,p[3].valueAsText)
+            #
+            # inputChannelPolygon = ConfinementProject.dataset()
+            # inputChannelPolygon.create(arcpy.Describe(p[4].valueAsText).basename,p[4].valueAsText)
+            #
+            # inputStreamNetwork = ConfinementProject.dataset()
+            # inputStreamNetwork.create(arcpy.Describe(p[2].valueAsText).basename,p[2].valueAsText)
 
-            inputChannelPolygon = ConfinementProject.InputDataset()
-            inputChannelPolygon.create(arcpy.Describe(p[4].valueAsText).basename,p[4].valueAsText)
+            idStreamNetwork = newConfinementProject.get_dataset_id(p[2].valueAsText)
+            idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
+            idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
 
-            inputStreamNetwork = ConfinementProject.InputDataset()
-            inputStreamNetwork.create(arcpy.Describe(p[2].valueAsText).basename,p[2].valueAsText)
+            outputRawConfiningState = ConfinementProject.dataset()
+            outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,p[5].valueAsText) # TODO make this relative path
 
-            outputRawConfiningState = ConfinementProject.OutputDataset()
-            outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,p[5].valueAsText)
-
-            outputConfiningMargins = ConfinementProject.OutputDataset()
+            outputConfiningMargins = ConfinementProject.dataset()
             outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,p[6].valueAsText)
 
             newRealization = ConfinementProject.ConfinementRealization()
             newRealization.create(p[1].valueAsText,
-                                  inputStreamNetwork,
-                                  inputValleyBottom,
-                                  inputChannelPolygon,
+                                  idStreamNetwork,
+                                  idValleyBottom,
+                                  idChannelPolygon,
                                   outputConfiningMargins,
                                   outputRawConfiningState)
 
             newConfinementProject.addRealization(newRealization)
             newConfinementProject.writeProjectXML(p[0].valueAsText)
+
         return
 
 ###### Analysis Tools ######
@@ -564,10 +604,10 @@ class MovingWindowConfinementTool(object):
 
             if p[0].valueAsText:
 
-                outputSeedPoints = ConfinementProject.OutputDataset()
+                outputSeedPoints = ConfinementProject.dataset()
                 outputSeedPoints.create("MovingWindowSeedPoints",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSeedPoints") + ".shp")
 
-                outputWindows = ConfinementProject.OutputDataset()
+                outputWindows = ConfinementProject.dataset()
                 outputWindows.create("MovingWindowSegments",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSegments") + ".shp")
 
                 outConfinementProject = ConfinementProject.ConfinementProject()
@@ -699,18 +739,18 @@ class FixedSegmentConfinementTool(object):
                           # p[6].valueAsText)
         return
 
-class CustomSegmentConfinementTool(object):
+class SegmentedNetworkConfinementTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
-        self.label = "Custom Segment Confinement"
-        self.description = "Calculate the Valley Confinement Using a Pre-Segmented Network. Tool Documentation: https://bitbucket.org/KellyWhitehead/geomorphic-network-and-analysis-toolbox/wiki/Tool_Documentation/MovingWindow"
+        self.label = "Confinement on Segmented Network"
+        self.description = "Calculate the Valley Confinement Using a Pre-Segmented Network. "
         self.category = 'Confinement Tools\\Analysis'
         self.canRunInBackground = False
 
     def getParameterInfo(self):
         """Define parameter definitions"""
         paramRealization = arcpy.Parameter(
-            displayName="Input Stream Network with Confining State",
+            displayName="Realization Name",
             name="realization",
             datatype="GPString",
             parameterType="Optional",
@@ -724,105 +764,133 @@ class CustomSegmentConfinementTool(object):
             direction="Input")
         param0.filter.list = ["Polyline"]
 
-        param1 = arcpy.Parameter(
-            displayName="Dissolve Field (Stream Branch ID)",
-            name="fieldStreamID",
+        paramFieldSegmentID = arcpy.Parameter(
+            displayName="Segment ID Field",
+            name="fieldSegmentID",
             datatype="GPString",
             parameterType="Required",
             direction="Input")
 
-        param2 = arcpy.Parameter(
-            displayName="Confining State Field",
-            name="fieldAttribute",
+        paramFieldConfinement = arcpy.Parameter(
+            displayName="IsConfined Field",
+            name="fieldConfined",
             datatype="GPString",
             parameterType="Required",
             direction="Input")
 
-        param3 = arcpy.Parameter(
-            displayName="Seed Point Distance",
-            name="dblSeedPointDistance",
-            datatype="GPDouble",
+        paramFieldConstriction = arcpy.Parameter(
+            displayName="IsConstrict Field",
+            name="fieldConstriction",
+            datatype="GPString",
             parameterType="Required",
             direction="Input")
-        # param3.value = 50
 
-        param4 = arcpy.Parameter(
-            displayName="Window Sizes",
-            name="inputWindowSizes",
-            datatype="GPDouble",
-            parameterType="Required",
-            direction="Input",
-            multiValue=True)
-        # param4.value = [50,100]
-
-        param5 = arcpy.Parameter(
-            displayName="Output Workspace",
-            name="strOutputWorkspace",
-            datatype="DEWorkspace",
-            parameterType="Optional",
-            direction="Input",
-            category="Outputs")
-
-        param6 = arcpy.Parameter(
-            displayName="Temp Workspace",
-            name="strTempWorkspace",
-            datatype="DEWorkspace",
-            parameterType="Optional",
-            direction="Input",
-            category="Outputs")
-        param6.value = arcpy.env.scratchWorkspace
-
-        param5.value = str(arcpy.env.scratchWorkspace)
-        params = [paramProjectXML, param1, param2, param3, param4, param5, param6]
+        params = [paramProjectXML,        #0
+                  paramRealization, #1
+                  paramAnalysisName, #2
+                  paramStreamNetwork, #3
+                  paramFieldSegmentID, #4
+                  paramFieldConfinement, #5
+                  paramFieldConstriction, #6
+                  paramOutputWorkspaceMW, #7
+                  paramTempWorkspace] #8
         return params
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
         return True
 
-    def updateParameters(self, parameters):
+    def updateParameters(self, p):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
-        # if parameters[0].value:
-        #     if arcpy.Exists(parameters[0].value):
-        #         # Get Fields
-        #         fields = arcpy.Describe(parameters[0].value).fields
-        #         listFields = []
-        #         for f in fields:
-        #             listFields.append(f.name)
-        #         parameters[1].filter.list = listFields
-        #         if "BranchID" in listFields:
-        #             parameters[1].value = "BranchID"
-        #         parameters[2].filter.list = listFields
-        #     else:
-        #         parameters[1].filter.list = []
-        #         parameters[2].filter.list = []
-        #         parameters[0].setErro.rMessage(" Dataset does not exist.")
-        # return
+        reload(ConfinementProject)
+
+        if p[0].value:
+            if arcpy.Exists(p[0].value):
+                confinementProject = ConfinementProject.ConfinementProject()
+                confinementProject.loadProjectXML(p[0].valueAsText)
+                p[1].enabled = "True"
+                p[7].enabled = "False"
+                p[1].filter.list = confinementProject.Realizations.keys()
+                if p[1].value:
+                    currentRealization = confinementProject.Realizations.get(p[1].valueAsText)
+                    p[3].value = currentRealization.OutputRawConfiningState.absolutePath(confinementProject.projectPath)
+                    p[3].enabled = "False"
+                    if p[2].value:
+                        from os import path
+                        p[7].value = path.join(confinementProject.projectPath, "Outputs", p[1].valueAsText, "Analyses", p[2].valueAsText)
+            else:
+                p[1].filter.list = []
+                p[1].value = ''
+                p[1].enabled = "False"
+                p[3].value = ""
+                p[3].enabled = "True"
+                p[7].value = ""
+                p[7].enabled = "True"
+
+        # Find Fields
+        populateFields(p[3], p[4], "SegmentID")
+        populateFields(p[3], p[5], "IsConfined")
+        populateFields(p[3], p[6], "IsConstric")
 
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
+        confinementProject = ConfinementProject.ConfinementProject()
+        if parameters[0].value:
+            if arcpy.Exists(parameters[0].value):
+                confinementProject.loadProjectXML(parameters[0].valueAsText)
+            if parameters[1].value:
+                currentRealization = confinementProject.Realizations.get(parameters[1].valueAsText)
+                if parameters[2].value:
+                    if parameters[2].value in currentRealization.analyses.keys():
+                        parameters[2].setErrorMessage(parameters[2].name + " " + parameters[
+                            2].value + " already exists for Realization " + currentRealization.name + ".")
 
-        testProjected(parameters[0])
-        testWorkspacePath(parameters[5])
-        testWorkspacePath(parameters[6])
+        testProjected(parameters[3])
+        testWorkspacePath(parameters[7])
+        testWorkspacePath(parameters[8])
         return
 
     def execute(self, p, messages):
         """The source code of the tool."""
-        # reload(MovingWindow)
+        reload(ConfinementSegments)
+        reload(ConfinementProject)
         setEnvironmentSettings()
-        #
-        # MovingWindow.main(p[0].valueAsText,
-        #                   p[1].valueAsText,
-        #                   p[2].valueAsText,
-        #                   p[3].valueAsText,
-        #                   p[4].valueAsText,
-        #                   p[5].valueAsText,
-        #                   p[6].valueAsText)
+
+        if p[0].valueAsText:
+            newConfinementProject = ConfinementProject.ConfinementProject()
+            newConfinementProject.loadProjectXML(p[0].valueAsText)
+            if p[1].valueAsText:
+                makedirs(path.join(newConfinementProject.projectPath, "Outputs", p[1].valueAsText, "Analyses",
+                                   p[2].valueAsText))
+
+        ConfinementSegments.custom_segments(p[3].valueAsText,
+                                            p[4].valueAsText,
+                                            p[5].valueAsText,
+                                            p[6].valueAsText,
+                                            p[7].valueAsText,
+                                            p[8].valueAsText)
+
+        if p[0].valueAsText:
+            outputConfinementSegments = ConfinementProject.dataset()
+            outputConfinementSegments.create("ConfinementSegments",
+                                        path.join("Outputs", p[1].valueAsText, "Analyses", p[2].valueAsText, "ConfinementSegments") + ".shp")
+
+            outConfinementProject = ConfinementProject.ConfinementProject()
+            outConfinementProject.loadProjectXML(p[0].valueAsText)
+            currentRealization = outConfinementProject.Realizations.get(p[1].valueAsText)
+            currentRealization.newAnalysisSegmentedNetwork(p[2].valueAsText,
+                                                           p[4].valueAsText,
+                                                           p[5].valueAsText,
+                                                           p[6].valueAsText,
+                                                           outputConfinementSegments)
+
+            outConfinementProject.Realizations[p[1].valueAsText] = currentRealization
+            outConfinementProject.writeProjectXML(p[0].valueAsText)
+
         return
 
 # Common Params #######################################################################################################
@@ -872,6 +940,14 @@ paramOutputWorkspace = arcpy.Parameter(
     datatype="DEWorkspace",
     parameterType="Optional",
     direction="Input",
+    category="Outputs")
+
+paramOutputWorkspaceMW = arcpy.Parameter(
+    displayName="Output Workspace",
+    name="strOutputWorkspace",
+    datatype="DEWorkspace",
+    parameterType="Optional",
+    direction="Output",
     category="Outputs")
 
 paramTempWorkspace = arcpy.Parameter(

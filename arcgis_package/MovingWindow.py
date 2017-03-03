@@ -121,13 +121,19 @@ def main(
 
     tblSummaryStatisticsPivot = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsPivotTable")
     arcpy.PivotTable_management(tblSummaryStatisticsConfinement,"Route;SeedID;Seg", fieldConfinement, "SUM_Shape_Length", tblSummaryStatisticsPivot)
-    
-    gis_tools.resetField(tblSummaryStatisticsPivot,"Con_Value","DOUBLE")
-    arcpy.CalculateField_management(tblSummaryStatisticsPivot,"Con_Value","!" + fieldConfinement + "1!/(!" + fieldConfinement + "0! + !" + fieldConfinement + "1!)", "PYTHON")
+
+    fieldConfinementValue = gis_tools.resetField(tblSummaryStatisticsPivot,"CONF_Value","DOUBLE")
+
+    if len(arcpy.ListFields(tblSummaryStatisticsPivot,fieldConfinement + "1")) == 0 :
+        arcpy.AddField_management(tblSummaryStatisticsPivot,fieldConfinement + "1","DOUBLE")
+    if len(arcpy.ListFields(tblSummaryStatisticsPivot,fieldConfinement + "0")) == 0 :
+        arcpy.AddField_management(tblSummaryStatisticsPivot,fieldConfinement + "0","DOUBLE")
+
+    arcpy.CalculateField_management(tblSummaryStatisticsPivot,fieldConfinementValue,"!" + fieldConfinement + "1!/(!" + fieldConfinement + "0! + !" + fieldConfinement + "1!)", "PYTHON")
 
     #Pivot Confinement on Segment Size
     tblSummaryStatisticsWindowPivot = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsWindowPivotTable")
-    arcpy.PivotTable_management(tblSummaryStatisticsPivot,fieldStreamRouteID + ";SeedID","Seg","Con_Value",tblSummaryStatisticsWindowPivot)
+    arcpy.PivotTable_management(tblSummaryStatisticsPivot,fieldStreamRouteID + ";SeedID","Seg",fieldConfinementValue,tblSummaryStatisticsWindowPivot)
 
     # Constriction
 
@@ -139,13 +145,17 @@ def main(
     arcpy.PivotTable_management(tblSummaryStatisticsConstriction, "Route;SeedID;Seg", fieldConstriction,
                                 "SUM_Shape_Length", tblSummaryStatisticsPivotConstriction)
 
+    fieldConstrictionValue = gis_tools.resetField(tblSummaryStatisticsPivotConstriction, "CNST_Value", "DOUBLE")
+    if len(arcpy.ListFields(tblSummaryStatisticsConstriction,fieldConstriction + "1")) == 0 :
+        arcpy.AddField_management(tblSummaryStatisticsConstriction,fieldConstriction + "1","DOUBLE")
+    if len(arcpy.ListFields(tblSummaryStatisticsConstriction,fieldConstriction + "0")) == 0 :
+        arcpy.AddField_management(tblSummaryStatisticsConstriction,fieldConstriction + "0","DOUBLE")
 
-    gis_tools.resetField(tblSummaryStatisticsPivotConstriction, "CNST_Value", "DOUBLE")
-    arcpy.CalculateField_management(tblSummaryStatisticsPivotConstriction, "CNST_Value",
+    arcpy.CalculateField_management(tblSummaryStatisticsPivotConstriction, fieldConstrictionValue,
                                     "!" + fieldConstriction + "1!/(!" + fieldConstriction + "0! + !" + fieldConstriction + "1!)",
                                     "PYTHON")
     tblSummaryStatisticsWindowPivotConstriction = gis_tools.newGISDataset(tempWorkspace,"GNAT_MWA_SummaryStatisticsWindowPivotTableConstriction")
-    arcpy.PivotTable_management(tblSummaryStatisticsPivotConstriction,fieldStreamRouteID + ";SeedID","Seg","CNST_Value",tblSummaryStatisticsWindowPivotConstriction)
+    arcpy.PivotTable_management(tblSummaryStatisticsPivotConstriction,fieldStreamRouteID + ";SeedID","Seg",fieldConstrictionValue,tblSummaryStatisticsWindowPivotConstriction)
 
     strWindowSizeFields = ""
     for WindowSize in liststrWindowSize:
