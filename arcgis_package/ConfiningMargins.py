@@ -7,10 +7,10 @@
 #              Seattle, Washington                                            #
 #                                                                             #
 # Created:     2014-Nov-01                                                    #
-# Version:     1.3                                                           #
+# Version:     1.3                                                            #
 # Modified:    2016-Feb-10                                                    #
 #                                                                             #
-# Copyright:   (c) Kelly Whitehead 2016                                   #
+# Copyright:   (c) Kelly Whitehead 2016                                       #
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #!/usr/bin/env python
@@ -27,6 +27,7 @@ import DividePolygonBySegment
 # use stat table calculation method
 # Added Constriction Field
 # Added Final Intersect to rejoin Original Attributes.
+
 
 # # Main Function # #
 def main(fcInputStreamLineNetwork,
@@ -54,37 +55,37 @@ def main(fcInputStreamLineNetwork,
     else:
         fcConfiningMargins = gis_tools.newGISDataset(scratchWorkspace, "ConfiningMargins")
 
-    fcConfiningMarginsMultipart = gis_tools.newGISDataset(scratchWorkspace,"ConfiningMargins_Multipart")
-    arcpy.Intersect_analysis([fcConfinedChannel,fcInputValleyBottomPolygon],fcConfiningMarginsMultipart,output_type="LINE")
+    fcConfiningMarginsMultipart = gis_tools.newGISDataset(scratchWorkspace, "ConfiningMargins_Multipart")
+    arcpy.Intersect_analysis([fcConfinedChannel, fcInputValleyBottomPolygon], fcConfiningMarginsMultipart, output_type="LINE")
     arcpy.MultipartToSinglepart_management(fcConfiningMarginsMultipart,fcConfiningMargins)
 
     # Merge segments in Polyline Center to create Route Layer
     arcpy.env.outputZFlag = "Disabled" # 'empty' z values can cause problem with dissolve
-    fcStreamNetworkDissolved = gis_tools.newGISDataset(scratchWorkspace,"StreamNetworkDissolved") ### one feature per 'section between trib or branch junctions'
-    arcpy.Dissolve_management(fcInputStreamLineNetwork,fcStreamNetworkDissolved,multi_part="SINGLE_PART",unsplit_lines="UNSPLIT_LINES")
+    fcStreamNetworkDissolved = gis_tools.newGISDataset(scratchWorkspace, "StreamNetworkDissolved") # one feature per 'section between trib or branch junctions'
+    arcpy.Dissolve_management(fcInputStreamLineNetwork, fcStreamNetworkDissolved, multi_part="SINGLE_PART", unsplit_lines="UNSPLIT_LINES")
 
-    fcNetworkSegmentPoints = gis_tools.newGISDataset(scratchWorkspace,"StreamNetworkSegmentPoints")
-    arcpy.FeatureVerticesToPoints_management(fcInputStreamLineNetwork,fcNetworkSegmentPoints,"END")
-    fcStreamNetworkDangles = gis_tools.newGISDataset(scratchWorkspace,"StreamNetworkDangles")
-    arcpy.FeatureVerticesToPoints_management(fcInputStreamLineNetwork,fcStreamNetworkDangles,"DANGLE")
+    fcNetworkSegmentPoints = gis_tools.newGISDataset(scratchWorkspace, "StreamNetworkSegmentPoints")
+    arcpy.FeatureVerticesToPoints_management(fcInputStreamLineNetwork, fcNetworkSegmentPoints, "END")
+    fcStreamNetworkDangles = gis_tools.newGISDataset(scratchWorkspace, "StreamNetworkDangles")
+    arcpy.FeatureVerticesToPoints_management(fcInputStreamLineNetwork, fcStreamNetworkDangles, "DANGLE")
 
     #SegmentPolgyons
     arcpy.AddMessage("Preparing Segmented Polygons...")
     
-    fcChannelSegmentPolygons = gis_tools.newGISDataset(scratchWorkspace,"SegmentPolygons")
+    fcChannelSegmentPolygons = gis_tools.newGISDataset(scratchWorkspace, "SegmentPolygons")
     fcChannelSegmentPolygonLines = gis_tools.newGISDataset(scratchWorkspace,"SegmentPolygonLines")
 
-    DividePolygonBySegment.main(fcInputStreamLineNetwork,fcConfinedChannel,fcChannelSegmentPolygons,scratchWorkspace)
-    arcpy.PolygonToLine_management(fcChannelSegmentPolygons,fcChannelSegmentPolygonLines)
+    DividePolygonBySegment.main(fcInputStreamLineNetwork, fcConfinedChannel, fcChannelSegmentPolygons, scratchWorkspace)
+    arcpy.PolygonToLine_management(fcChannelSegmentPolygons, fcChannelSegmentPolygonLines)
 
     lyrStreamNetworkDangles = gis_tools.newGISDataset("LAYER", "lyrStreamNetworkDangles")
-    arcpy.MakeFeatureLayer_management(fcStreamNetworkDangles,lyrStreamNetworkDangles)
-    arcpy.SelectLayerByLocation_management(lyrStreamNetworkDangles,"INTERSECT",fcConfinedChannel)
-    arcpy.Near_analysis(lyrStreamNetworkDangles,fcChannelSegmentPolygonLines,location="LOCATION")
+    arcpy.MakeFeatureLayer_management(fcStreamNetworkDangles, lyrStreamNetworkDangles)
+    arcpy.SelectLayerByLocation_management(lyrStreamNetworkDangles, "INTERSECT", fcConfinedChannel)
+    arcpy.Near_analysis(lyrStreamNetworkDangles, fcChannelSegmentPolygonLines, location="LOCATION")
     
     arcpy.AddXY_management(lyrStreamNetworkDangles)
 
-    fcChannelBankNearLines = gis_tools.newGISDataset(scratchWorkspace,"Bank_NearLines")
+    fcChannelBankNearLines = gis_tools.newGISDataset(scratchWorkspace, "Bank_NearLines")
     arcpy.XYToLine_management(lyrStreamNetworkDangles,
                                 fcChannelBankNearLines,
                                 "POINT_X",
@@ -92,58 +93,61 @@ def main(fcInputStreamLineNetwork,
                                 "NEAR_X",
                                 "NEAR_Y")
 
-    fcChannelBankLines = gis_tools.newGISDataset(scratchWorkspace,"Bank_Lines")
-    arcpy.Merge_management([fcInputStreamLineNetwork,fcChannelBankNearLines,fcChannelSegmentPolygonLines],fcChannelBankLines)#fcChannelSegmentPolygonLines,
-    fcChannelBankPolygons = gis_tools.newGISDataset(scratchWorkspace,"Bank_Polygons")
-    arcpy.FeatureToPolygon_management(fcChannelBankLines,fcChannelBankPolygons)
+    fcChannelBankLines = gis_tools.newGISDataset(scratchWorkspace, "Bank_Lines")
+    arcpy.Merge_management([fcInputStreamLineNetwork,fcChannelBankNearLines, fcChannelSegmentPolygonLines], fcChannelBankLines)
+    fcChannelBankPolygons = gis_tools.newGISDataset(scratchWorkspace, "Bank_Polygons")
+    arcpy.FeatureToPolygon_management(fcChannelBankLines, fcChannelBankPolygons)
         
-    ## Intersect and Split Channel polygon Channel Edges and Polyline Confinement using cross section lines
+    # # Intersect and Split Channel polygon Channel Edges and Polyline Confinement using cross section lines
     arcpy.AddMessage("Intersect and Split Channel Polygons...")
-    fcIntersectPoints_ChannelMargins = gis_tools.newGISDataset(scratchWorkspace,"IntersectPoints_ChannelMargins")
-    fcIntersectPoints_ConfinementMargins = gis_tools.newGISDataset(scratchWorkspace,"IntersectPoints_ConfinementMargins")
-    arcpy.Intersect_analysis([fcConfiningMargins,fcChannelSegmentPolygonLines],fcIntersectPoints_ConfinementMargins,output_type="POINT")
-    arcpy.Intersect_analysis([fcChannelMargins,fcChannelSegmentPolygonLines],fcIntersectPoints_ChannelMargins,output_type="POINT")
-    fcConfinementMargin_Segments = gis_tools.newGISDataset(scratchWorkspace,"ConfinementMargin_Segments")
-    fcChannelMargin_Segments = gis_tools.newGISDataset(scratchWorkspace,"ChannelMargin_Segements")
-    arcpy.SplitLineAtPoint_management(fcConfiningMargins,fcIntersectPoints_ConfinementMargins,fcConfinementMargin_Segments,search_radius="10 Meters")
-    arcpy.SplitLineAtPoint_management(fcChannelMargins,fcIntersectPoints_ChannelMargins,fcChannelMargin_Segments,search_radius="10 Meters")
+    fcIntersectPoints_ChannelMargins = gis_tools.newGISDataset(scratchWorkspace, "IntersectPoints_ChannelMargins")
+    fcIntersectPoints_ConfinementMargins = gis_tools.newGISDataset(scratchWorkspace, "IntersectPoints_ConfinementMargins")
+    arcpy.Intersect_analysis([fcConfiningMargins,fcChannelSegmentPolygonLines], fcIntersectPoints_ConfinementMargins, output_type="POINT")
+    arcpy.Intersect_analysis([fcChannelMargins,fcChannelSegmentPolygonLines], fcIntersectPoints_ChannelMargins, output_type="POINT")
+    fcConfinementMargin_Segments = gis_tools.newGISDataset(scratchWorkspace, "ConfinementMargin_Segments")
+    fcChannelMargin_Segments = gis_tools.newGISDataset(scratchWorkspace, "ChannelMargin_Segements")
+    arcpy.SplitLineAtPoint_management(fcConfiningMargins, fcIntersectPoints_ConfinementMargins, fcConfinementMargin_Segments, search_radius="10 Meters")
+    arcpy.SplitLineAtPoint_management(fcChannelMargins, fcIntersectPoints_ChannelMargins, fcChannelMargin_Segments, search_radius="10 Meters")
 
     # Create River Side buffer to select right or left banks
     arcpy.AddMessage("Determining Relative Sides of Bank...")
-    determine_banks(fcInputStreamLineNetwork,fcChannelBankPolygons,scratchWorkspace)
+    determine_banks(fcInputStreamLineNetwork, fcChannelBankPolygons, scratchWorkspace)
 
     # Prepare Layers for Segment Selection
     lyrSegmentPolygons = gis_tools.newGISDataset("Layer","lyrSegmentPolygons")
-    lyrConfinementEdgeSegments = gis_tools.newGISDataset("Layer","lyrConfinementEdgeSegments")
-    lyrChannelEdgeSegments = gis_tools.newGISDataset("Layer","lyrChannelEdgeSegments")
-    arcpy.MakeFeatureLayer_management(fcChannelSegmentPolygons,lyrSegmentPolygons)
-    arcpy.MakeFeatureLayer_management(fcConfinementMargin_Segments,lyrConfinementEdgeSegments)
-    arcpy.MakeFeatureLayer_management(fcChannelMargin_Segments,lyrChannelEdgeSegments)
+    lyrConfinementEdgeSegments = gis_tools.newGISDataset("Layer", "lyrConfinementEdgeSegments")
+    lyrChannelEdgeSegments = gis_tools.newGISDataset("Layer", "lyrChannelEdgeSegments")
+    arcpy.MakeFeatureLayer_management(fcChannelSegmentPolygons, lyrSegmentPolygons)
+    arcpy.MakeFeatureLayer_management(fcConfinementMargin_Segments, lyrConfinementEdgeSegments)
+    arcpy.MakeFeatureLayer_management(fcChannelMargin_Segments, lyrChannelEdgeSegments)
 
     ## Prepare Filtered Margins
-    fcFilterSplitPoints = gis_tools.newGISDataset(scratchWorkspace,"FilterSplitPoints")
-    arcpy.FeatureVerticesToPoints_management(fcConfinementMargin_Segments,fcFilterSplitPoints,"BOTH_ENDS")
+    fcFilterSplitPoints = gis_tools.newGISDataset(scratchWorkspace, "FilterSplitPoints")
+    arcpy.FeatureVerticesToPoints_management(fcConfinementMargin_Segments, fcFilterSplitPoints, "BOTH_ENDS")
 
     # Transfer Confining Margins to Stream Network ##
     arcpy.AddMessage("Transferring Confining Margins to Stream Network...")
-    fcConfinementMarginSegmentsBankSide = gis_tools.newGISDataset(scratchWorkspace,"ConfinementMarginSegmentsBank")
-    lyrConfinementMarginSegmentsBankside = gis_tools.newGISDataset("Layer","lyrConfinementMarginSegmentsBankside")
+    fcConfinementMarginSegmentsBankSide = gis_tools.newGISDataset(scratchWorkspace, "ConfinementMarginSegmentsBank")
+    lyrConfinementMarginSegmentsBankside = gis_tools.newGISDataset("Layer", "lyrConfinementMarginSegmentsBankside")
+
+    field_map = """BankSide "BankSide" true true false 255 Text 0 0 ,First,#,""" + fcChannelBankPolygons + """,BankSide,-1,-1"""
     arcpy.SpatialJoin_analysis(fcConfinementMargin_Segments,
                                fcChannelBankPolygons,
                                fcConfinementMarginSegmentsBankSide,
                                "JOIN_ONE_TO_ONE",
                                "KEEP_ALL",
-                               """BankSide "BankSide" true true false 255 Text 0 0 ,First,#,""" + fcChannelBankPolygons + """,BankSide,-1,-1""")
+                               field_map)
 
-    arcpy.MakeFeatureLayer_management(fcConfinementMarginSegmentsBankSide,lyrConfinementMarginSegmentsBankside)
-    arcpy.SelectLayerByAttribute_management(lyrConfinementMarginSegmentsBankside,"NEW_SELECTION",""" "BankSide" = 'LEFT'""")
+    arcpy.MakeFeatureLayer_management(fcConfinementMarginSegmentsBankSide, lyrConfinementMarginSegmentsBankside)
+    arcpy.SelectLayerByAttribute_management(lyrConfinementMarginSegmentsBankside, "NEW_SELECTION", """ "BankSide" = 'LEFT'""")
     
-    fcStreamNetworkConfinementLeft = transfer_line(lyrConfinementMarginSegmentsBankside,fcStreamNetworkDissolved,"LEFT")
-    arcpy.SelectLayerByAttribute_management(lyrConfinementMarginSegmentsBankside,"NEW_SELECTION",""" "BankSide" = 'RIGHT'""")
-    fcStreamNetworkConfinementRight = transfer_line(lyrConfinementMarginSegmentsBankside,fcStreamNetworkDissolved,"RIGHT")
+    fcStreamNetworkConfinementLeft = transfer_line(lyrConfinementMarginSegmentsBankside, fcStreamNetworkDissolved, "LEFT")
+    arcpy.SelectLayerByAttribute_management(lyrConfinementMarginSegmentsBankside, "NEW_SELECTION", """ "BankSide" = 'RIGHT'""")
+    fcStreamNetworkConfinementRight = transfer_line(lyrConfinementMarginSegmentsBankside, fcStreamNetworkDissolved, "RIGHT")
 
     fcConfinementStreamNetworkIntersected = gis_tools.newGISDataset(scratchWorkspace,"ConfinementStreamNetworkIntersected")
-    arcpy.Intersect_analysis([fcStreamNetworkConfinementLeft,fcStreamNetworkConfinementRight],fcConfinementStreamNetworkIntersected,"NO_FID")#TODO no fid?
+    arcpy.Intersect_analysis([fcStreamNetworkConfinementLeft,fcStreamNetworkConfinementRight],
+                             fcConfinementStreamNetworkIntersected, "NO_FID") # TODO no fid?
 
     #Re-split centerline by segments
     arcpy.AddMessage("Determining Confinement State on Stream Network...")
@@ -154,35 +158,36 @@ def main(fcInputStreamLineNetwork,
                                       "0.01 Meters")
 
     #Table and Attributes
-    arcpy.AddField_management(fcRawConfiningNetworkSplit,"Con_Type","TEXT",field_length="6")
-    arcpy.AddField_management(fcRawConfiningNetworkSplit,"IsConfined","SHORT")
-    gis_tools.resetField(fcRawConfiningNetworkSplit,"IsConstric","SHORT")
+    arcpy.AddField_management(fcRawConfiningNetworkSplit, "Con_Type", "TEXT", field_length="6")
+    arcpy.AddField_management(fcRawConfiningNetworkSplit, "IsConfined", "SHORT")
+    gis_tools.resetField(fcRawConfiningNetworkSplit, "IsConstric", "SHORT")
 
-    lyrRawConfiningNetwork = gis_tools.newGISDataset("Layer","lyrStreamNetworkCenterline1")
+    lyrRawConfiningNetwork = gis_tools.newGISDataset("Layer", "lyrStreamNetworkCenterline1")
     arcpy.MakeFeatureLayer_management(fcRawConfiningNetworkSplit,lyrRawConfiningNetwork)
 
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"NEW_SELECTION",""" "Con_LEFT" = 1""")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type","'LEFT'","PYTHON")
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"NEW_SELECTION",""" "Con_RIGHT" = 1""")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type","'RIGHT'","PYTHON")
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"NEW_SELECTION",""" "Con_LEFT" = 1 AND "Con_RIGHT" = 1""")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type","'BOTH'","PYTHON")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"IsConstric","1","PYTHON")
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"SWITCH_SELECTION")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"IsConstric","0","PYTHON")
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"NEW_SELECTION",""" "Con_LEFT" = 1 OR "Con_RIGHT" = 1""")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"IsConfined","1","PYTHON")
-    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"SWITCH_SELECTION")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"IsConfined","0","PYTHON")
-    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type","'NONE'","PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork,"NEW_SELECTION", """ "Con_LEFT" = 1""")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type", "'LEFT'", "PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork, "NEW_SELECTION", """ "Con_RIGHT" = 1""")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type", "'RIGHT'", "PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork, "NEW_SELECTION", """ "Con_LEFT" = 1 AND "Con_RIGHT" = 1""")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork,"Con_Type", "'BOTH'", "PYTHON")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork,"IsConstric", "1", "PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork, "SWITCH_SELECTION")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork, "IsConstric", "0", "PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork, "NEW_SELECTION", """ "Con_LEFT" = 1 OR "Con_RIGHT" = 1""")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork, "IsConfined", "1", "PYTHON")
+    arcpy.SelectLayerByAttribute_management(lyrRawConfiningNetwork, "SWITCH_SELECTION")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork, "IsConfined", "0", "PYTHON")
+    arcpy.CalculateField_management(lyrRawConfiningNetwork, "Con_Type", "'NONE'", "PYTHON")
 
     # Final Output
     arcpy.AddMessage("Preparing Final Output...")
     if arcpy.Exists(fcOutputRawConfiningState):
         arcpy.Delete_management(fcOutputRawConfiningState)
-    arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcInputStreamLineNetwork],fcOutputRawConfiningState,"NO_FID")
+    arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcInputStreamLineNetwork], fcOutputRawConfiningState, "NO_FID")
 
     return
+
 
 def determine_banks(fcInputStreamLineNetwork,fcChannelBankPolygons,scratchWorkspace):
 
@@ -199,6 +204,7 @@ def determine_banks(fcInputStreamLineNetwork,fcChannelBankPolygons,scratchWorksp
     arcpy.CalculateField_management(lyrChannelBanks,"BankSide","'RIGHT'","PYTHON")
     
     return 
+
 
 def transfer_line(fcInLine,fcToLine,strStreamSide):
     outputWorkspace = arcpy.Describe(fcInLine).path
