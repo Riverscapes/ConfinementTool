@@ -20,7 +20,7 @@
 from os import path, makedirs
 import arcpy
 from arcgis_package import ConfiningMargins, MovingWindow, ConfinementSegments
-import Riverscapes
+from Riverscapes import Riverscapes
 
 
 class Toolbox(object):
