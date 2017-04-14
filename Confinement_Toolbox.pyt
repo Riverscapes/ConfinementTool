@@ -20,7 +20,7 @@
 from os import path, makedirs
 import arcpy
 from arcgis_package import ConfiningMargins, MovingWindow, ConfinementSegments
-from Riverscapes import Riverscapes
+# from Riverscapes import Riverscapes
 
 
 class Toolbox(object):
@@ -112,9 +112,9 @@ class ConfinementProjectTool(object):
 
     def execute(self, p, messages):
         """The source code of the tool."""
-        reload(Riverscapes)
+        from Riverscapes import Riverscapes
 
-        newConfinementProject = Riverscapes.Project()# ConfinementProject.ConfinementProject()
+        newConfinementProject = Riverscapes.Project()
         newConfinementProject.create(p[0].valueAsText,"Confinement")
         newConfinementProject.addProjectMetadata("Operator",p[2].valueAsText)
         newConfinementProject.addProjectMetadata("Region",p[3].valueAsText)
@@ -170,10 +170,11 @@ class LoadInputsTool(object):
 
     def execute(self, p, messages):
         """The source code of the tool."""
-        reload(Riverscapes)
+
+        from Riverscapes import Riverscapes
+
         from os import path,makedirs
-        newConfinementProject = Riverscapes.Project() #ConfinementProject.ConfinementProject()
-        newConfinementProject.loadProjectXML(p[0].valueAsText)
+        newConfinementProject = Riverscapes.Project(p[0].valueAsText)
 
         pathProject = arcpy.Describe(p[0].valueAsText).path
 
@@ -276,10 +277,12 @@ class LoadInputsFromProjectTool(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
+        from Riverscapes import Riverscapes
+
         # Todo better check for type of project (GNAT only) and if exists, and if empty datasets
         if arcpy.Exists(p[1].value):
-            project_streamnetwork = Riverscapes.Project()
-            project_streamnetwork.loadProjectXML(p[1].valueAsText)
+            project_streamnetwork = Riverscapes.Project(p[1].valueAsText)
+
             filter_list = []
             for realizationName, realization in project_streamnetwork.Realizations.iteritems():
                 filter_list.append(realizationName + " " +
@@ -305,9 +308,10 @@ class LoadInputsFromProjectTool(object):
 
     def execute(self, p, messages):
         """The source code of the tool."""
-        reload(Riverscapes)
-        ConfinementProject = Riverscapes.Project()
-        ConfinementProject.loadProjectXML(p[0].valueAsText)
+
+        from Riverscapes import Riverscapes
+
+        ConfinementProject = Riverscapes.Project(p[0].valueAsText)
 
         # Create Project Paths if they do not exist
         pathInputs = ConfinementProject.projectPath + "\\Inputs"
@@ -331,7 +335,7 @@ class LoadInputsFromProjectTool(object):
                                                   #                        ConfinementProject.projectPath),
                                                   #           nameStreamNetwork) + ".shp",
                                                   # p[1].valueAsText)
-            dataset = Riverscapes.dataset()
+            dataset = Riverscapes.Dataset()
             dataset.create(nameStreamNetwork,
                            path.join(path.relpath(pathStreamNetworkID,ConfinementProject.projectPath)),
                            "StreamNetwork",
@@ -373,6 +377,8 @@ class LoadInputsFromProjectTool(object):
         ConfinementProject.writeProjectXML(p[0].valueAsText)
 
         return
+
+
 ###### Realizations ######
 class ConfiningMarginTool(object):
     def __init__(self):
@@ -438,6 +444,8 @@ class ConfiningMarginTool(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
+        from Riverscapes import Riverscapes
+
         if p[0].altered:
             if p[0].value and arcpy.Exists(p[0].valueAsText):
                 # Set Project Mode
@@ -449,8 +457,7 @@ class ConfiningMarginTool(object):
                 p[5].parameterType = "Optional"
                 p[6].parameterType = "Optional"
 
-                currentProject = Riverscapes.Project()# ConfinementProject.ConfinementProject()
-                currentProject.loadProjectXML(p[0].valueAsText)
+                currentProject = Riverscapes.Project(p[0].valueAsText)
 
                 listInputDatasets = []
                 for name,inputDataset in currentProject.InputDatasets.iteritems():
@@ -480,14 +487,15 @@ class ConfiningMarginTool(object):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
 
+        from Riverscapes import Riverscapes
+
         if parameters[0].valueAsText:
-            newConfinementProject = Riverscapes.Project() # ConfinementProject.ConfinementProject()
-            newConfinementProject.loadProjectXML(parameters[0].valueAsText)
+            newConfinementProject = Riverscapes.Project(parameters[0].valueAsText)
 
             for realization in newConfinementProject.Realizations:
                 if realization == parameters[1].valueAsText:
                     parameters[1].setErrorMessage("Realization " + parameters[1].valueAsText + " already exists.")
-                    break
+                    return
 
         testProjected(parameters[2])
         testProjected(parameters[3])
@@ -504,11 +512,11 @@ class ConfiningMarginTool(object):
     def execute(self, p, messages):
         """The source code of the tool."""
         reload(ConfiningMargins)
+        from Riverscapes import Riverscapes
 
         # if in project mode, create workspaces as needed.
         if p[0].valueAsText:
-            newConfinementProject = Riverscapes.Project()# ConfinementProject.ConfinementProject()
-            newConfinementProject.loadProjectXML(p[0].valueAsText)
+            newConfinementProject = Riverscapes.Project(p[0].valueAsText)# ConfinementProject.ConfinementProject()
             if p[1].valueAsText:
                 from os import path,makedirs
                 makedirs(path.join(newConfinementProject.projectPath, "Outputs",p[1].valueAsText))
@@ -539,14 +547,14 @@ class ConfiningMarginTool(object):
             idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
             idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
 
-            outputRawConfiningState = Riverscapes.dataset()
+            outputRawConfiningState = Riverscapes.Dataset()
             outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,p[5].valueAsText) # TODO make this relative path
 
-            outputConfiningMargins = Riverscapes.dataset()
+            outputConfiningMargins = Riverscapes.Dataset()
             outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,p[6].valueAsText)
 
             newRealization = Riverscapes.ConfinementRealization()
-            newRealization.create(p[1].valueAsText,
+            newRealization.createConfinementRealization(p[1].valueAsText,
                                   idStreamNetwork,
                                   idValleyBottom,
                                   idChannelPolygon,
@@ -669,12 +677,11 @@ class MovingWindowConfinementTool(object):
             """Modify the values and properties of parameters before internal
             validation is performed.  This method is called whenever a parameter
             has been changed."""
-            reload(Riverscapes)
+            from Riverscapes import Riverscapes
 
             if p[0].value:
                 if arcpy.Exists(p[0].value):
-                    confinementProject = Riverscapes.Project() #ConfinementProject.ConfinementProject()
-                    confinementProject.loadProjectXML(p[0].valueAsText)
+                    confinementProject = Riverscapes.Project(p[0].valueAsText)
                     p[1].enabled = "True"
                     p[9].enabled = "False"
                     p[1].filter.list = confinementProject.Realizations.keys()
@@ -704,15 +711,16 @@ class MovingWindowConfinementTool(object):
         def updateMessages(self, parameters):
             """Modify the messages created by internal validation for each tool
             parameter.  This method is called after internal validation."""
-            confinementProject = Riverscapes.Project() #ConfinementProject.ConfinementProject()
+            from Riverscapes import Riverscapes
+
             if parameters[0].value:
                 if arcpy.Exists(parameters[0].value):
-                    confinementProject.loadProjectXML(parameters[0].valueAsText)
-                if parameters[1].value:
-                    currentRealization = confinementProject.Realizations.get(parameters[1].valueAsText)
-                    if parameters[2].value:
-                        if parameters[2].value in currentRealization.analyses.keys():
-                            parameters[2].setErrorMessage(parameters[2].name + " " + parameters[2].value + " already exists for Realization " + currentRealization.name + ".")
+                    confinementProject = Riverscapes.Project(parameters[0].valueAsText)
+                    if parameters[1].value:
+                        currentRealization = confinementProject.Realizations.get(parameters[1].valueAsText)
+                        if parameters[2].value:
+                            if parameters[2].value in currentRealization.analyses.keys():
+                                parameters[2].setErrorMessage(parameters[2].name + " " + parameters[2].value + " already exists for Realization " + currentRealization.name + ".")
 
             testProjected(parameters[4])
             testWorkspacePath(parameters[9])
@@ -722,13 +730,12 @@ class MovingWindowConfinementTool(object):
         def execute(self, p, messages):
             """The source code of the tool."""
             reload(MovingWindow)
-            reload(Riverscapes)
+            from Riverscapes import Riverscapes
             setEnvironmentSettings()
 
             # if in project mode, create workspaces as needed.
             if p[0].valueAsText:
-                newConfinementProject = Riverscapes.Project() #ConfinementProject.ConfinementProject()
-                newConfinementProject.loadProjectXML(p[0].valueAsText)
+                newConfinementProject = Riverscapes.Project(p[0].valueAsText)
                 if p[1].valueAsText:
                     makedirs(path.join(newConfinementProject.projectPath, "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText))
 
@@ -743,10 +750,10 @@ class MovingWindowConfinementTool(object):
 
             if p[0].valueAsText:
 
-                outputSeedPoints = Riverscapes.dataset() #ConfinementProject.dataset()
+                outputSeedPoints = Riverscapes.Dataset() #ConfinementProject.dataset()
                 outputSeedPoints.create("MovingWindowSeedPoints",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSeedPoints") + ".shp")
 
-                outputWindows = Riverscapes.dataset() #ConfinementProject.dataset()
+                outputWindows = Riverscapes.Dataset() #ConfinementProject.dataset()
                 outputWindows.create("MovingWindowSegments",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSegments") + ".shp")
 
                 outConfinementProject = Riverscapes.Project() # .ConfinementProject()
@@ -946,12 +953,11 @@ class SegmentedNetworkConfinementTool(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
-        reload(Riverscapes)
+        from Riverscapes import Riverscapes
 
         if p[0].value:
             if arcpy.Exists(p[0].value):
-                confinementProject = Riverscapes.Project() # ConfinementProject.ConfinementProject()
-                confinementProject.loadProjectXML(p[0].valueAsText)
+                confinementProject = Riverscapes.Project(p[0].valueAsText)
                 p[1].enabled = "True"
                 p[7].enabled = "False"
                 p[1].filter.list = confinementProject.Realizations.keys()
@@ -979,16 +985,20 @@ class SegmentedNetworkConfinementTool(object):
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
-        confinementProject = Riverscapes.Project()
+
+        from Riverscapes import Riverscapes
+
+
         if parameters[0].value:
             if arcpy.Exists(parameters[0].value):
-                confinementProject.loadProjectXML(parameters[0].valueAsText)
-            if parameters[1].value:
-                currentRealization = confinementProject.Realizations.get(parameters[1].valueAsText)
-                if parameters[2].value:
-                    if parameters[2].value in currentRealization.analyses.keys():
-                        parameters[2].setErrorMessage(parameters[2].name + " " + parameters[
-                            2].value + " already exists for Realization " + currentRealization.name + ".")
+                confinementProject = Riverscapes.Project(parameters[0].valueAsText)
+                if parameters[1].value:
+                    currentRealization = confinementProject.Realizations.get(parameters[1].valueAsText)
+                    if parameters[2].value:
+                        if parameters[2].value in currentRealization.analyses.keys():
+                            parameters[2].setErrorMessage(parameters[2].name + " " + parameters[2].value +
+                                                          " already exists for Realization " + currentRealization.name +
+                                                          ".")
 
         testProjected(parameters[3])
         testWorkspacePath(parameters[7])
@@ -998,12 +1008,11 @@ class SegmentedNetworkConfinementTool(object):
     def execute(self, p, messages):
         """The source code of the tool."""
         reload(ConfinementSegments)
-        reload(Riverscapes)
+        from Riverscapes import Riverscapes
         setEnvironmentSettings()
 
         if p[0].valueAsText:
-            newConfinementProject = Riverscapes.Project() #.ConfinementProject()
-            newConfinementProject.loadProjectXML(p[0].valueAsText)
+            newConfinementProject = Riverscapes.Project(p[0].valueAsText)
             if p[1].valueAsText:
                 makedirs(path.join(newConfinementProject.projectPath, "Outputs", p[1].valueAsText, "Analyses",
                                    p[2].valueAsText))
@@ -1016,12 +1025,11 @@ class SegmentedNetworkConfinementTool(object):
                                             p[8].valueAsText)
 
         if p[0].valueAsText:
-            outputConfinementSegments = Riverscapes.dataset() #ConfinementProject.dataset()
+            outputConfinementSegments = Riverscapes.Dataset()
             outputConfinementSegments.create("ConfinementSegments",
                                         path.join("Outputs", p[1].valueAsText, "Analyses", p[2].valueAsText, "ConfinementSegments") + ".shp")
 
-            outConfinementProject = Riverscapes.Project() #ConfinementProject.ConfinementProject()
-            outConfinementProject.loadProjectXML(p[0].valueAsText)
+            outConfinementProject = Riverscapes.Project(p[0].valueAsText)
             currentRealization = outConfinementProject.Realizations.get(p[1].valueAsText)
             currentRealization.newAnalysisSegmentedNetwork(p[2].valueAsText,
                                                            p[4].valueAsText,
@@ -1033,6 +1041,7 @@ class SegmentedNetworkConfinementTool(object):
             outConfinementProject.writeProjectXML(p[0].valueAsText)
 
         return
+
 
 # Common Params #######################################################################################################
 def get_projectxml_param(display_name):
