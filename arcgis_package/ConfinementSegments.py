@@ -2,9 +2,8 @@
 
 
 import arcpy
-import argparse
 import gis_tools
-
+#import
 
 def custom_segments(fcInputNetwork,
                     fieldSegmentID,

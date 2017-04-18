@@ -35,7 +35,8 @@ def main(fcInputStreamLineNetwork,
          fcInputChannelPolygon,
          fcOutputRawConfiningState,
          fcOutputConfiningMargins,
-         scratchWorkspace):
+         scratchWorkspace,
+         boolIntegratedWidthAttributes=False):
 
     ##Prepare processing environments
     arcpy.AddMessage("Starting Confining Margins Tool")
@@ -180,11 +181,26 @@ def main(fcInputStreamLineNetwork,
     arcpy.CalculateField_management(lyrRawConfiningNetwork, "IsConfined", "0", "PYTHON")
     arcpy.CalculateField_management(lyrRawConfiningNetwork, "Con_Type", "'NONE'", "PYTHON")
 
+    # Integrated Width
+
+    fcIntersectLineNetwork = fcInputStreamLineNetwork
+    if boolIntegratedWidthAttributes:
+        fcIntegratedChannelWidth = gis_tools.newGISDataset(scratchWorkspace,"IW_Channel")
+        fieldIWChannel = integrated_width(fcInputStreamLineNetwork, fcChannelSegmentPolygons, fcIntegratedChannelWidth, "Channel" , False)
+
+        fcIntegratedWidth = gis_tools.newGISDataset(scratchWorkspace,"IW_ChannelAndValley")
+        fieldIWValley = integrated_width(fcIntegratedChannelWidth,fcInputValleyBottomPolygon,fcIntegratedWidth,"Valley",True)
+
+        fieldIWRatio = gis_tools.resetField(fcIntegratedWidth, "IW_Ratio", "DOUBLE")
+        exp = "!" + fieldIWValley + r"! / !" + fieldIWChannel + "!"
+        arcpy.CalculateField_management(fcIntegratedWidth, fieldIWRatio, exp, "PYTHON_9.3")
+        fcIntersectLineNetwork = fcIntegratedWidth
+
     # Final Output
     arcpy.AddMessage("Preparing Final Output...")
     if arcpy.Exists(fcOutputRawConfiningState):
         arcpy.Delete_management(fcOutputRawConfiningState)
-    arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcInputStreamLineNetwork], fcOutputRawConfiningState, "NO_FID")
+    arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcIntersectLineNetwork], fcOutputRawConfiningState, "NO_FID")
 
     return
 
@@ -237,6 +253,40 @@ def transfer_line(fcInLine,fcToLine,strStreamSide):
     arcpy.CalculateField_management(lyrToLineSegments,strConfinementField,1,"PYTHON")
     
     return fcOutput
+
+
+def integrated_width(fcInLines, fcInPolygons, fcOutLines, strMetricName="", boolSegmentPolygon=False, temp_workspace="in_memory"):
+
+    fcMemLines = gis_tools.newGISDataset(temp_workspace,"lineNetwork")
+    arcpy.CopyFeatures_management(fcInLines,fcMemLines)
+    fieldLength = gis_tools.resetField(fcMemLines,"IW_Length","DOUBLE")
+    arcpy.CalculateField_management(fcMemLines,fieldLength,"!Shape!.length","PYTHON")
+
+    fcMemPolygons = gis_tools.newGISDataset(temp_workspace,'Polygons')
+    if boolSegmentPolygon:
+        DividePolygonBySegment.main(fcMemLines, fcInPolygons, fcMemPolygons, temp_workspace, dblPointDensity=5.0)
+    else:
+        arcpy.CopyFeatures_management(fcInPolygons,fcMemPolygons)
+
+    fieldPolygonArea = gis_tools.resetField(fcMemPolygons, strMetricName[0:6] + "Area","DOUBLE")
+    arcpy.CalculateField_management(fcMemPolygons, fieldPolygonArea, "!Shape!.area", "PYTHON")
+
+    f_mappings = arcpy.FieldMappings()
+    f_mappings.addTable(fcMemLines)
+    fmap_area = arcpy.FieldMap()
+    fmap_area.addInputField(fcMemPolygons, fieldPolygonArea)
+
+    f_mappings.addFieldMap(fmap_area)
+
+    arcpy.SpatialJoin_analysis(fcMemLines, fcMemPolygons, fcOutLines, "JOIN_ONE_TO_ONE", "KEEP_ALL",
+                               field_mapping=f_mappings, match_option="WITHIN")
+    fieldIntegratedWidth = gis_tools.resetField(fcOutLines, "IW" + strMetricName[0:8], "DOUBLE")
+    exp = "!" + fieldPolygonArea + r"! / !" + fieldLength + "!"
+    print exp
+    arcpy.CalculateField_management(fcOutLines, fieldIntegratedWidth, exp, "PYTHON_9.3")
+
+    return fieldIntegratedWidth
+
 
 if __name__ == "__main__":
 

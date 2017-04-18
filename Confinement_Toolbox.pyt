@@ -280,24 +280,27 @@ class LoadInputsFromProjectTool(object):
         from Riverscapes import Riverscapes
 
         # Todo better check for type of project (GNAT only) and if exists, and if empty datasets
-        if arcpy.Exists(p[1].value):
-            project_streamnetwork = Riverscapes.Project(p[1].valueAsText)
+        if p[1].value:
+            if arcpy.Exists(p[1].valueAsText):
+                project_streamnetwork = Riverscapes.Project(p[1].valueAsText)
+                p[2].filter.list = []
+                filter_list = []
+                for realizationName, realization in project_streamnetwork.Realizations.iteritems():
+                    filter_list.append(realizationName + " " +
+                                       realization.GNAT_StreamNetwork.name +
+                                       " (" + realization.GNAT_StreamNetwork.absolutePath(project_streamnetwork.projectPath) + ") [" +
+                                       realization.GNAT_StreamNetwork.guid + "]")
+                p[2].filter.list = filter_list
 
-            filter_list = []
-            for realizationName, realization in project_streamnetwork.Realizations.iteritems():
-                filter_list.append(realizationName + " " +
-                                   realization.GNAT_StreamNetwork.name +
-                                   " ( " + realization.GNAT_StreamNetwork.absolutePath(project_streamnetwork.projectPath) + ") [" +
-                                   realization.GNAT_StreamNetwork.guid + "]")
-            p[2].filter.list = filter_list
+        if p[4].value:
+            if arcpy.Exists(p[4].valuAsText):
 
-        if arcpy.Exists(p[4].value):
-            project_vbet = Riverscapes.Project()
-            project_vbet.loadProjectXML(p[1].valueAsText)
-            filter_list = []
-            for realizationName, realization in project_vbet.Realizations.iteritems():
-                filter_list.append(realizationName + " " + realization.GNAT_StreamNetwork.name + " ( " + realization.GNAT_StreamNetwork.absolutePath(project_vbet.projectPath) + ")")
-            p[4].filter.list = filter_list
+                project_vbet = Riverscapes.Project()
+                project_vbet.loadProjectXML(p[1].valueAsText)
+                filter_list = []
+                for realizationName, realization in project_vbet.Realizations.iteritems():
+                    filter_list.append(realizationName + " " + realization.GNAT_StreamNetwork.name + " (" + realization.GNAT_StreamNetwork.absolutePath(project_vbet.projectPath) + ")")
+                p[4].filter.list = filter_list
         return
 
     def updateMessages(self, parameters):
@@ -319,8 +322,8 @@ class LoadInputsFromProjectTool(object):
             makedirs(pathInputs)
 
         # Stream Network Input
-        for value in p[1].value:
-            stream_network = value[value.find("(") + 1:value.find(")") - 1]
+        for value in p[2].valueAsText.split(";"):
+            stream_network = value[value.find("(") + 1:value.find(")") ]
             pathStreamNetworks = pathInputs + "\\StreamNetworks"
             nameStreamNetwork = arcpy.Describe(stream_network).basename
             if not arcpy.Exists(pathStreamNetworks):
@@ -526,7 +529,8 @@ class ConfiningMarginTool(object):
                               p[4].valueAsText,
                               p[5].valueAsText,
                               p[6].valueAsText,
-                              getTempWorkspace(p[7].valueAsText)) # If Not specified, in memory is used
+                              getTempWorkspace(p[7].valueAsText),
+                              True) # If Not specified, in memory is used
 
         # on success, rewrite xml file if in project mode
         if p[0].valueAsText:
