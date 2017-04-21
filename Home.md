@@ -28,8 +28,8 @@ The Confinement Tool has a **[Project Mode](About-Confinement-Projects)** to sup
 ### Stand-Alone Tools
 The primary Confinement Tools can also be used in a "stand-alone" analysis workflow. 
 
-- **[Confining Margins Tool](ConfinementTool)** Generate confining margins and calculate Confinement values for a stream network.
-- **[Confinement By Segments]()** Calculate confinement along *pre-existing* segments in the stream network.
+- **[Confining Margins Tool](Generate-Confining-Margins)** Generate confining margins and calculate Confinement values for a stream network.
+- **[Confinement By Segments](Calculating-Confinement)** Calculate confinement along *pre-existing* segments in the stream network.
 - **[Moving Window Tool](MovingWindowTool)** Tool for calculating confinement from a set of moving window segments.
 
 # Acknowledgements
