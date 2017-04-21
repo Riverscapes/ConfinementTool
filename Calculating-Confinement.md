@@ -1,4 +1,4 @@
-This tool Calculates Confinement along the Segments in the Stream Network
+This tool Calculates Confinement along the Segments in the Stream Network.
 
 [TOC]
 
@@ -6,11 +6,38 @@ This tool Calculates Confinement along the Segments in the Stream Network
 
 ## Project Mode
 
+Confinement by Segments results are stored as a "confinement analysis" and are associated with one and only one "Realization." If a new realization is created within a project, new analyses must be generated for the new realization. 
 
+> **A Project will store all realizations and analyses. At this point, there is no support for deleting a realization or analysis from a project.**
+
+1. Make sure you have generated at least one Confinement Realization.
+2. In ArcMap navigate to Confinement Toolbox / Confinement Tools / Analysis / Confinement on Segmented Network Tool in ArcToolbox.
+   1. Specify the **Project.XML** file. The Tool window will enter "Project Mode".
+   2. From the Dropdown, select the Realization you want to base your analysis on.
+      1. The Tool will automatically use the correct Stream Network Input from the specified Realization.
+   3. Provide a unique name for the Confinement Segments Analysis. The tool will check to make sure the name you provide does not already exist.
+   4. Specify a **SegmentID** Field that contains the unique ID's of the Segmentation of the network that will be used to calculate confinement values on.
+   5. The tool will attempt to find the correct confinement and Constriction fields.
+   6. In "Project Mode", the output workspace is managed for you, 
+   7. (Optional) Specify a Temporary workspace.  If one is not specified, the "in_memory" workspace will be used.
+   8. Click OK to run the tool.
+
+![](Images\AnalysisConfinementSegments.png)
+
+------
 
 ## Non-Project Mode
 
+1. Make sure you have run the Confining Margins tool.
+2. In ArcMap navigate to Confinement Toolbox / Confinement Tools / Analysis / Confinement on Segmented Network Tool in ArcToolbox.
+   1. Leave the **Project.XML** file and Realization parameters empty.
+   2. Specify a **SegmentID** Field that contains the unique ID's of the Segmentation of the network that will be used to calculate confinement values on.
+   3. The tool will attempt to find the correct confinement and Constriction fields.
+   4. Specify the output workspace for the results.
+   5. (Optional) specify a Temporary workspace. If one is not specified, the "in_memory" workspace will be used.
+   6. Click OK to run the tool.
 
+------
 
 # About
 
