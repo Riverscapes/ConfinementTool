@@ -30,7 +30,7 @@ Moving window results are stored as a "confinement analysis" and are associated 
 
 ## Non Project Mode
 
-1. Make sure you have run the Confinign Margins tool.
+1. Make sure you have run the Confining Margins tool.
 2. In ArcMap navigate to Confinement Toolbox / Confinement Tools / Analysis / Moving Window Confinement Tool in ArcToolbox.
    1. Leave the **Project.XML** file and Realization parameters empty.
    2. Specify a **Dissolve** Field that is used to make continuous stretches of the stream. For Example, GNAT uses a "Stream Branch ID" system. 
