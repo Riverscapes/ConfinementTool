@@ -20,7 +20,7 @@ The Confinement Toolbox is provided as a zip file containing a .pyt file and sup
 
 ## Using the Confinement Tools
 
-![](Images/ArcToolbox.PNG)
+![](Images/ArcToolbox.png)
 
 ### Project Mode
 The Confinement Tool has a **[Project Mode](About-Confinement-Projects)** to support confinement analysis organization and the RiverScapes Program.
