@@ -1,6 +1,6 @@
 [Home](https://github.com/SouthForkResearch/confinementtool/wiki)
 
-[Download and Installation](Downloads/Releases)
+[Download and Installation](Releases)
 
 Workflows
 
