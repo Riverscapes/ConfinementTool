@@ -1,5 +1,7 @@
 The moving window analysis tool calculates length based attributes over a series of user specified window lengths. The results are reported at the center point of each window series (Seed Point).
 
+![](Images/ArcToolbox-MovingWindow.png)
+
 [TOC]
 
 # Tool Usage
@@ -62,7 +64,7 @@ The field that contains a unique ID for each Stream/Route. The tool will dissolv
 
 ### Attribute Field
 
-The Field that contains the Attribute information for the moving window calculation. <Needs clarification: Currently only BINARY fields for Confinement (i.e. `IsConfined`).>
+The Field that contains the Attribute information for the moving window calculation.
 
 ### Seed Point Distance
 
@@ -82,19 +84,15 @@ In the output workspace you will find:
 
 ### GNAT_MWA_SeedPoints
 
-Points feature class that contain the calculated attribute for each window size, centered on each seed point feature. 
+Points feature class that contain the calculated attribute for each window size, centered on each seed point feature. This layer contains the following attributes:
 
-Attributes:
-
-* RouteID: The same attribute as the StreamBranchID specified in the inputs.
-* SeedID: Unique ID for each seed point. Can be used to join back to Window line features in GNAT_MWA_WindowLines.
+* `RouteID`: The same attribute as the `StreamBranchID` specified in the inputs.
+* `SeedID`: Unique ID for each seed point. Can be used to join back to Window line features in GNAT_MWA_WindowLines.
 * Each window size will have its own field (i.e. `WindowSize100` for a window of 100m, etc)
 
 ### GNAT_MWA_WindowLines
 
-The line features that represent the moving windows. These features will overlap both in window spacing (seed distance) and window sizes. 
+The line features that represent the moving windows. These features will overlap both in window spacing (seed distance) and window sizes. This layer contains the following attributes:
 
-Attributes:
-
-* SeedID: Unique id for each seed point. This can be used to join back to the individual seed points.
-* Window size: Size of the window (due to geometric rounding, the actual shape length may be slightly larger or smaller than the window size).
+* `SeedID`: Unique id for each seed point. This can be used to join back to the individual seed points.
+* `Window size`: Size of the window (due to geometric rounding, the actual shape length may be slightly larger or smaller than the window size).

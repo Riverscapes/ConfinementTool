@@ -1,5 +1,7 @@
 This tool Calculates Confinement along the Segments in the Stream Network.
 
+![](Images/ArcToolbox-ConfinementSegments.png)
+
 [TOC]
 
 # Tool Usage
@@ -22,7 +24,7 @@ Confinement by Segments results are stored as a "confinement analysis" and are a
    7. (Optional) Specify a Temporary workspace.  If one is not specified, the "in_memory" workspace will be used.
    8. Click OK to run the tool.
 
-![](Images\AnalysisConfinementSegments.png)
+![](Images/AnalysisConfinementSegments.png)
 
 ------
 
@@ -44,4 +46,28 @@ Confinement by Segments results are stored as a "confinement analysis" and are a
 ## Methods
 
 ## Outputs
+
+### Confinement Segments
+
+Output shapefile that contains the confinement value calculated for each segment (feature) in the Stream Network. The network contains the attributes and segments (features) from the original input stream network with the following attributes added:
+
+***SegLen*** *Double*
+
+This is the length of the segment, as used by the confinement tool. 
+
+***CONF_Value*** *Double*
+
+This is the **Confinement Value** of the segment calculated as 
+
+$C = length_{confined}/length_{segment}$
+
+The values range from 0 (unconfined) to 1 (fully confined).
+
+***CNST_Value*** *Double*
+
+This is the **Constriction Value** of the segment calculated as 
+
+$C = length_{constricted}/length_{segment}$
+
+The values range from 0 (unconstricted) to 1 (fully constricted).
 

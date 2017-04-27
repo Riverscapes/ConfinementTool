@@ -1,24 +1,29 @@
 In order to generate confinement within a project, you must first load the three input files to the project.
 
+![](Images/ArcToolbox-LoadDatasets.png)
+
 ## Stream Network
 This is the basic line network that represents the stream. Confinement calculations and attributes will be applied to a final output based on this network. 
 
 - The network should be in a projected coordinate system.
 - The network can be of any GIS format, but once loaded to a Confinement project it will be stored as a shapefile. Please note that field names will be truncated to 10 char.
 - The network will work best when it is contained completely within the Channel and Valley Bottom Polygons
-- **If you want to calculate confinement based on your own stream segments, you must do this prior to loading to the confinement project.** The Confinement by Segments tool will use a specified field to dissolve the network segments. 
+- **Confinement values are based on the segmentation that exists in the stream network; you must do this prior to loading the network to the confinement project.** The Confinement by Segments tool will use a specified field to dissolve the network segments. 
+- The confinement tool does not currently accept other [Riverscapes projects as inputs](https://github.com/SouthForkResearch/ConfinementTool/issues/10). Instead, use the output GIS layers from these projects directly.
 
 ## Active Channel Polygon (Bankfull Buffer)
 This polygon represents the margins of the area considered to be the active channel, plus a buffer to account for digitization error and uncertainty. They may exist outside the boundary of the valley bottom (this is how a confined margin is determined).
 
-- The network should be in a projected coordinate system.
-- The network can be of any GIS format, but once loaded to a Confinement project it will be stored as a shapefile. Please note that field names will be truncated to 10 char.
+- The dataset should be in a projected coordinate system.
+- The dataset can be of any GIS polygon format, but once loaded to a Confinement project it will be stored as a shapefile. Please note that field names will be truncated to 10 char.
+- The confinement tool does not currently accept other [Riverscapes projects as inputs](https://github.com/SouthForkResearch/ConfinementTool/issues/10).  Instead, use the output GIS layers from these projects directly.
 
 ## Valley Bottom Polygon 
 This polygon represents the margins of the valley bottom that provides a confining margin to the stream. 
 
-- The network should be in a projected coordinate system.
-- The network can be of any GIS format, but once loaded to a Confinement project it will be stored as a shapefile. Please note that field names will be truncated to 10 char.
+- The dataset should be in a projected coordinate system.
+- The dataset can be of any GIS polygon format, but once loaded to a Confinement project it will be stored as a shapefile. Please note that field names will be truncated to 10 char.
+- The confinement tool does not currently accept other [Riverscapes projects as inputs](https://github.com/SouthForkResearch/ConfinementTool/issues/10).  Instead, use the output GIS layers from these projects directly.
 
 # Steps to Load the Input Datasets
 
