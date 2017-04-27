@@ -1,6 +1,6 @@
 [Home](https://github.com/SouthForkResearch/confinementtool/wiki)
 
-[Download and Installation](https://github.com/SouthForkResearch/confinementtool/wiki/Download-and-Installation)
+[Download and Installation](Downloads/Releases)
 
 Workflows
 
@@ -18,4 +18,5 @@ Workflows
     * Step 2 -  Calculate Confinement Values by
       * [Existing Stream Segments](https://github.com/SouthForkResearch/ConfinementTool/wiki/Calculating-Confinement)
       * [Moving Windows](MovingWindowTool)
+
 

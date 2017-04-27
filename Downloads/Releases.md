@@ -1,13 +1,21 @@
+# Downloads
 
-# Downloads and Release Notes #
+## Version 2.2
 
-**[Version 2.1.02](Downloads/ConfinementTool_2.1.02.zip) **2017-MAR-03 
+
+
+## Version 2.1 
+
+**[Version 2.1.02](Downloads/ConfinementTool_2.1.02.zip)** 2017-MAR-03 
+
+```
++ Roll out of "Confinement Project"
++ Calculate Constriction Metric
++ Reconfigured Toolbox Structure to support projects and stand alone calculations
+```
 
 **[Version 2.1.01 (beta)](Downloads/ConfinementTool_2.1.01_Beta.zip)** 2017-JAN-09
-	
-	+ Roll out of "Confinement Project"
-	+ Calculate Constriction Metric
-	+ Reconfigured Toolbox Structure to support projects and stand alone calculations
+## Alpha Versions
 
 **[Version 0.2.0](Downloads/ConfinementToolbox_0.2.0.zip)** 2016-02-24
 
