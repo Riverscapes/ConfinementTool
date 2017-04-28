@@ -76,7 +76,8 @@ def main(fcInputStreamLineNetwork,
     fcChannelSegmentPolygons = gis_tools.newGISDataset(scratchWorkspace, "SegmentPolygons")
     fcChannelSegmentPolygonLines = gis_tools.newGISDataset(scratchWorkspace,"SegmentPolygonLines")
 
-    DividePolygonBySegment.main(fcInputStreamLineNetwork, fcConfinedChannel, fcChannelSegmentPolygons, scratchWorkspace)
+    #DividePolygonBySegment.main(fcInputStreamLineNetwork, fcConfinedChannel, fcChannelSegmentPolygons, scratchWorkspace)
+    arcpy.CopyFeatures_management(fcConfinedChannel,fcChannelSegmentPolygons)
     arcpy.PolygonToLine_management(fcChannelSegmentPolygons, fcChannelSegmentPolygonLines)
 
     lyrStreamNetworkDangles = gis_tools.newGISDataset("LAYER", "lyrStreamNetworkDangles")

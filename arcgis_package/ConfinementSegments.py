@@ -72,6 +72,10 @@ def custom_segments(fcInputNetwork,
 
     # Copy Final Output
     outNetwork = gis_tools.newGISDataset(outputWorkspace,"ConfinementSegments.shp")
+
+    arcpy.DeleteField_management(fcNetwork,["Con_LEFT", "Con_RIGHT", "Con_Type", fieldConfinement, fieldConstriction])
+    #arcpy.Dissolve_management(fcNetwork,outNetwork)
+
     arcpy.CopyFeatures_management(fcNetwork,outNetwork)
 
     return outNetwork
