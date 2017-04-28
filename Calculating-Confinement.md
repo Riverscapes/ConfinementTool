@@ -26,6 +26,13 @@ Confinement by Segments results are stored as a "confinement analysis" and are a
 
 ![](Images/AnalysisConfinementSegments.png)
 
+9. The Project will store the outputs of the anaysis in the following structure:
+   - **ProjectFolder**
+     - **Outputs** (All output "Realizations" will be saved here)
+       - **Confinement_001** (The folder that contains the realizaition you selected to generate the analysis with)
+         - **ConfinementSegments_001** (the sequential number of your analysis)
+           - *ConfinementSegments.shp*
+
 ------
 
 ## Non-Project Mode

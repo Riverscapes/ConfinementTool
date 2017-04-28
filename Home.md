@@ -1,16 +1,26 @@
 The Confinement Toolbox contains the Confinement Tool and Moving Window Tool for calculating confinement along a stream network. This tool is written in Python (2.7) for use in ArcGIS version 10.1.
 
+## News
+
+***2017-APR-28*** 
+
+Version 2.2 Released! This version produces Riverscapes projects via [Riverscapes Project Python module](https://github.com/SouthForkResearch/PythonRiverscapesProject), adds outputs to the map (with a basic symbology applied), improved speed by removing old processes, plus other bugs fixed.  
+
+Version 2.3 is already in the planning stages (see issues marked with Milestone 2.3), and will include features such as Riverscapes project linking, Generic Confinement analysis types,  and more!
+
 ## Download
 
-**[Version 2.1.02](Downloads/ConfinementTool_2.1.02.zip)** released on 2017-MAR-03 
+**[Version 2.2.01](Downloads/ConfinementTool_2.2.01.zip)** released on 2017-APR-28 
 
-	+ Roll out of "Confinement Project"
-	+ Calculate Constriction Metric
-	+ Reconfigured Toolbox Structure to support projects and stand alone calculations
+```markdown
+* Updated Riverscapes Project (integrated with Riverscapes Project Python module)
+* Added Symbology and map layers to Confining Margins
+* Updated folder structure
+```
 
 [Previous Versions and Release Notes](Releases)
 
-## Installation
+### Installation
 
 The Confinement Toolbox is provided as a zip file containing a .pyt file and supporting script files. 
 

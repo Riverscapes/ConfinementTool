@@ -2,7 +2,13 @@
 
 ## Version 2.2
 
+**[Version 2.2.01](Downloads/ConfinementTool_2.2.01.zip)** released on 2017-APR-28 
 
+```markdown
+* Updated Riverscapes Project (integrated with Riverscapes Project Python module)
+* Added Symbology and map layers to Confining Margins
+* Updated folder structure
+```
 
 ## Version 2.1 
 
@@ -29,8 +35,20 @@
 
 # Installation #
 
+## Zipfile
+
 The Confinement Toolbox is provided as a zip file containing a .pyt file and supporting script files. 
 
-1. Unzip the contents to your computer (keep all files together).
+1. Download the zipfile and unzip the contents to your computer (keep all files together).
 2. Open ArcGIS.
 3. Add the .pyt file to Arctoolbox as you would any other Geoprocessing Toolbox.
+
+## GIT Repo
+
+1. Clone the Master Branch of this repo to your local computer.
+
+2. Open ArcGIS.
+
+3. Add the .pyt file to Arctoolbox as you would any other Geoprocessing Toolbox.
+
+   > Both Feature (x.x) and Maintenance/Bug fix releases (x.x.xx) will be pushed to this branch.

@@ -23,7 +23,9 @@ You can always load new inputs to the confinement project, however, you cannot (
 2. Open ArcMap and navigate to Confinement Toolbox / Confinement Project Management / Create a New Confinement Project in ArcToolbox.
   1. Specify the **Name** of the New Project.
 
-  2. Specify the **location of the Folder** you created in step 1 .
+  2. Specify the **location of the Folder** to store your project
+
+     > If you check the *Create New Project Folder* box, A new folder with the project name will be created in the location you specify.  The new project will be stored there. 
 
   3. Specify the **User** name creating the Project
 
@@ -36,6 +38,11 @@ You can always load new inputs to the confinement project, however, you cannot (
   6. Click OK to generate the new project XML file.
 
 ![Tool Window](Images/NewConfinementProjectToolWindow.PNG "Confinement Project")
+
+7. The tool should produce the following outupts using the above parameters:
+
+   ![](Images/Folder-NewProject.png)
+
 
 
 You will now add data to the project in [Step 2](Load-Input-Datasets).

@@ -38,7 +38,22 @@ This polygon represents the margins of the valley bottom that provides a confini
 
 ![Add Inputs Tool](Images/AddInputsToProjectToolWindow.PNG)
 
-3. The Project.xml file will be updated to include these inputs, and they will be stored appropriately in the Project folder structure.
+3. The Project.xml file will be updated to include these inputs, and they will be stored appropriately in the Project folder structure:
+
+   * **Inputs** (all inputs are stored in here)
+     * **ChannelPolygons** (all Active Channel Polygons are added here)
+       * **ChannelPolygon001** (Each Active Channel Polygon gets a sequentially numbered folder, as it is added to the project)
+         * *Your_Channel_Polygon.shp*
+     * **StreamNetworks** (all Stream Networks are added here)
+       - **StreamNetwork001** (Each Stream Network gets a sequentially numbered folder, as it is added to the project)
+         - *Your_Stream_Network.shp*
+     * **ValleyBottoms** (all Valley Bottom Polygons are added here)
+       - **ValleyBottom001** (Each Valley Bottom Polygon gets a sequentially numbered folder, as it is added to the project)
+         - *Your_Valley_Bottom.shp*
+
+   The following is an example of a project with two channel polygons, two stream networks, and one valley bottom added to it:
+
+   ![](Images/Folder-ProjectInputs.png)
 
 > **At this point in the project, do not move or rename any files within the project folder. Doing so could cause the project to become corrupt. **
 >

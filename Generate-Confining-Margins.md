@@ -34,6 +34,15 @@ With the inputs loaded into the project, the next step is to generate the Raw Co
 
 ![Realization Window](Images/ConfiementRealizationToolWindow.PNG)
 
+9. The Project will store the outputs in the following structure:
+
+   * **ProjectFolder**
+     * **Outputs** (All output "Realizations" will be saved here)
+       * **Confinement_001** (A folder with the sequential number of your realization)
+         * *ConfiningMargins.shp*
+         * *RawConfiningState.shp*
+
+
 Proceed to [Calculate Confinement by Segments](Calculating-Confinement) or [Moving Window Analysis](MovingWindowTool)
 
 ------
