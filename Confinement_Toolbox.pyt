@@ -21,8 +21,8 @@ from os import path, makedirs
 import arcpy
 from arcgis_package import ConfiningMargins, MovingWindow, ConfinementSegments
 
-ConfinementToolReleaseVersion = "2.2.01"
-ConfinementProjectVersion = "2.2"
+ConfinementToolReleaseVersion = "2.2.02"
+ConfinementProjectVersion = "2.3"
 
 path_lyr = path.join(path.dirname(path.realpath(__file__)),"lyr")
 
@@ -557,10 +557,12 @@ class ConfiningMarginTool(object):
             idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
 
             outputRawConfiningState = Riverscapes.Dataset()
-            outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,p[5].valueAsText)
+            outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,
+                                           path.join("Outputs", p[1].valueAsText, "RawConfiningState" ) + ".shp")
 
             outputConfiningMargins = Riverscapes.Dataset()
-            outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,p[6].valueAsText)
+            outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,
+                                          path.join("Outputs", p[1].valueAsText, "ConfiningMargins") + ".shp")
 
             newRealization = Riverscapes.ConfinementRealization()
             newRealization.createConfinementRealization(p[1].valueAsText,
@@ -1369,7 +1371,7 @@ class SegmentedNetworkConfinementTool(object):
 
 
 # Common Params #######################################################################################################
-def get_projectxml_param(display_name,str_category=""):
+def get_projectxml_param(display_name, str_category=""):
 
     param = arcpy.Parameter(
         displayName=display_name,
