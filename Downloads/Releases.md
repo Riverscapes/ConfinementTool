@@ -2,6 +2,12 @@
 
 ## Version 2.2
 
+**[Version 2.2.02](Downloads/ConfinementTool_2.2.02.zip)** 2017-JUL-19
+
+```
+* Fixed bug with relative paths in project file.
+```
+
 **[Version 2.2.01](Downloads/ConfinementTool_2.2.01.zip)** released on 2017-APR-28 
 
 ```markdown

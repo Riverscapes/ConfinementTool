@@ -10,14 +10,11 @@ Version 2.3 is already in the planning stages (see issues marked with Milestone 
 
 ## Download
 
-**[Version 2.2.01](Downloads/ConfinementTool_2.2.01.zip)** released on 2017-APR-28 
+**[Version 2.2.02](Downloads/ConfinementTool_2.2.02.zip)** 2017-JUL-19
 
-```markdown
-* Updated Riverscapes Project (integrated with Riverscapes Project Python module)
-* Added Symbology and map layers to Confining Margins
-* Updated folder structure
 ```
-
+* Fixed bug with relative paths in project file.
+```
 [Previous Versions and Release Notes](Releases)
 
 ### Installation
