@@ -8,8 +8,8 @@
 #              Seattle, Washington                                            #
 #                                                                             #
 # Created:     2015-Jan-08                                                    #
-# Version:     2.1                                                            #
-# Released:                                                                   #
+# Version:      2.2.03                                                        #
+# Released:     2017 AUG 01                                                   #
 #                                                                             #
 # License:     Free to use.                                                   #
 #                                                                             #
@@ -21,7 +21,7 @@ from os import path, makedirs
 import arcpy
 from arcgis_package import ConfiningMargins, MovingWindow, ConfinementSegments
 
-ConfinementToolReleaseVersion = "2.2.02"
+ConfinementToolReleaseVersion = "2.2.03"
 ConfinementProjectVersion = "2.3"
 
 path_lyr = path.join(path.dirname(path.realpath(__file__)),"lyr")
@@ -555,14 +555,15 @@ class ConfiningMarginTool(object):
             idStreamNetwork = newConfinementProject.get_dataset_id(p[2].valueAsText)
             idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
             idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
+            idRealization = newConfinementProject.Realizations[p[1].valueAsText].id
 
             outputRawConfiningState = Riverscapes.Dataset()
             outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,
-                                           path.join("Outputs", p[1].valueAsText, "RawConfiningState" ) + ".shp")
+                                           path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
 
             outputConfiningMargins = Riverscapes.Dataset()
             outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,
-                                          path.join("Outputs", p[1].valueAsText, "ConfiningMargins") + ".shp")
+                                          path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
 
             newRealization = Riverscapes.ConfinementRealization()
             newRealization.createConfinementRealization(p[1].valueAsText,
@@ -1012,8 +1013,8 @@ class MovingWindowConfinementTool(object):
                         p[3].value = currentRealization.OutputRawConfiningState.absolutePath(confinementProject.projectPath)
                         p[3].enabled = "False"
                         if p[2].value:
-                            from os import path
-                            p[9].value = path.join(confinementProject.projectPath, "Outputs", p[1].valueAsText, "Analyses", p[2].valueAsText)
+                            analysis_id = "ConfiningSegments_" + str(len(currentRealization.analyses) + 1).zfill(3)
+                            p[9].value = path.join(confinementProject.projectPath, "Outputs", currentRealization.id, "Analyses", analysis_id)
                 else:
                     p[1].filter.list = []
                     p[1].value = ''
@@ -1059,7 +1060,9 @@ class MovingWindowConfinementTool(object):
             if p[0].valueAsText:
                 newConfinementProject = Riverscapes.Project(p[0].valueAsText)
                 if p[1].valueAsText:
-                    makedirs(path.join(newConfinementProject.projectPath, "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText))
+                    currentRealization = newConfinementProject.Realizations[p[1].valueAsText]
+                    analysis_id = "ConfiningSegments_" + str(len(currentRealization.analyses) + 1).zfill(3)
+                    makedirs(path.join(newConfinementProject.projectPath, "Outputs", newConfinementProject.Realizations[p[0].valueAsText].id, "Analyses", analysis_id))
 
             MovingWindow.main(p[3].valueAsText,
                               p[4].valueAsText,
@@ -1071,21 +1074,19 @@ class MovingWindowConfinementTool(object):
                               p[10].valueAsText)
 
             if p[0].valueAsText:
-
-                outputSeedPoints = Riverscapes.Dataset() #ConfinementProject.dataset()
-                outputSeedPoints.create("MovingWindowSeedPoints",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSeedPoints") + ".shp")
+                outConfinementProject = Riverscapes.Project(p[0].valueAsText)
+                currentRealization = outConfinementProject.Realizations.get(p[1].valueAsText)
+                realization_id = currentRealization.id
+                analysis_id = "ConfiningSegments_" + str(len(currentRealization.analyses) + 1).zfill(3)
+                outputSeedPoints = Riverscapes.Dataset()
+                outputSeedPoints.create("MovingWindowSeedPoints",path.join( "Outputs" , realization_id, "Analyses", analysis_id, "MovingWindowSeedPoints") + ".shp")
 
                 outputWindows = Riverscapes.Dataset() #ConfinementProject.dataset()
-                outputWindows.create("MovingWindowSegments",path.join( "Outputs" , p[1].valueAsText, "Analyses",p[2].valueAsText, "MovingWindowSegments") + ".shp")
+                outputWindows.create("MovingWindowSegments", path.join("Outputs", realization_id, "Analyses", analysis_id, "MovingWindowSegments") + ".shp")
 
-                outConfinementProject = Riverscapes.Project() # .ConfinementProject()
-                outConfinementProject.loadProjectXML(p[0].valueAsText)
-                currentRealization = outConfinementProject.Realizations.get(p[1].valueAsText)
-                currentRealization.newAnalysisMovingWindow(p[2].valueAsText,p[7].valueAsText,p[8].valueAsText,outputSeedPoints,outputWindows)
-
+                currentRealization.newAnalysisMovingWindow(p[2].valueAsText, p[7].valueAsText, p[8].valueAsText, outputSeedPoints, outputWindows, analysis_id)
                 outConfinementProject.Realizations[p[1].valueAsText] = currentRealization
-
-                outConfinementProject.writeProjectXML(p[0].valueAsText)
+                outConfinementProject.writeProjectXML()
 
             return
 
@@ -1229,7 +1230,7 @@ class SegmentedNetworkConfinementTool(object):
         param0 = arcpy.Parameter(
             displayName="Input Stream Network with Confining State",
             name="lineNetwork",
-            datatype="GPFeatureLayer",
+            datatype="DEFeatureClass",
             parameterType="Required",
             direction="Input")
         param0.filter.list = ["Polyline"]
@@ -1362,7 +1363,8 @@ class SegmentedNetworkConfinementTool(object):
                                                            p[4].valueAsText,
                                                            p[5].valueAsText,
                                                            p[6].valueAsText,
-                                                           outputConfinementSegments)
+                                                           outputConfinementSegments,
+                                                           analysis_id)
 
             outConfinementProject.Realizations[p[1].valueAsText] = currentRealization
             outConfinementProject.writeProjectXML()
