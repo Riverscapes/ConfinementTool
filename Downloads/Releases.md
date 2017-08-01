@@ -2,6 +2,10 @@
 
 ## Version 2.2
 
+**[Version 2.2.03](Downloads/ConfinementTool_2.2.03.zip)** 2017 AUG 01
+
+``` * Fixed Bug with path naming for Realizations and Analyses```
+
 **[Version 2.2.02](Downloads/ConfinementTool_2.2.02.zip)** 2017-JUL-19
 
 ```
