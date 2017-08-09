@@ -19,6 +19,7 @@ The Confinement tool includes a set of two 'integrated width' attributes as well
 
 
 
+
 ## Output Metrics
 
 **Integrated Channel Width** *(IW_Channel)*
@@ -31,5 +32,5 @@ Integrated Width of the Valley Bottom Polygon along the length of the Stream Seg
 
 **Integrated Channel to Valley Width Ratio** *(IW_Ratio)*
 $$
-r_{{w}_{i}} = w_{{i}_{channel}} / w_{{i}_{valley}}
+r_{w_i} = w_{{i}_{channel}} / w_{{i}_{valley}}
 $$
