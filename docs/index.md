@@ -44,10 +44,10 @@ The primary Confinement Tools can also be used in a "stand-alone" analysis workf
 The Confinement Toolbox was written by Kelly Whitehead (South Fork Research, Seattle WA) with support, contributions and testing by
 
 - Carol Volk (SFR)
-- Joe Wheaton (Utah State University, Logan UT)
-- Wally MacFarlane (USU)
-- Jordan Gilbert (USU)
-- Gary O'Brien (USU)
+- [Joe Wheaton](http://joewheaton.org) (Utah State University, Logan UT)
+- [Wally MacFarlane](http://etal.joewheaton.org/people/researchers-technicians/Wally) (USU)
+- [Jordan Gilbert](http://etal.joewheaton.org/people/researchers-technicians/jordan-gilbert) (USU)
+- [Gary O'Brien](http://etal.joewheaton.org/people/researchers-technicians/gary-o-brien) (USU)
 - Steve Fortney (TerrAqua, Inc.)
 - Jean Olson (SFR)
 
