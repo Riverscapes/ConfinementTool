@@ -1,3 +1,7 @@
+---
+title: Confinement Tool Home
+---
+
 The Confinement Toolbox contains geoprocessing scripts for calculating confinement along a stream network. This tool is written in Python (2.7) for use in ArcGIS version 10.1.
 
 ## News
