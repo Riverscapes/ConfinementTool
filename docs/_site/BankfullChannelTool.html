@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confinement Tool</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/assets/css/app.css">
+      <link rel="stylesheet" href="/assets/css/custom.css">
+      <script src="https://use.fontawesome.com/586b1e1322.js"></script>
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+
+      
+      <h4 class="subheader show-for-medium"><a href="/">Confinement Tool</a></h4>   
+      <h1>Bankfull Channel Polygon Tool</h1>
+            
+      
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>The Bankfull Channel Tool generates an approximate bankfull channel, with an optional buffer. This tool is modified from the Bankfull Channel tool developed by USU and is included as a basic tool for generating an active channel polygon used in confinement.</p>
+
+<p><img src="" alt="" /></p>
+
+<p>[TOC]</p>
+
+<h1 id="workflow">Workflow</h1>
+
+<h2 id="prepare-inputs">Prepare Inputs</h2>
+
+<p>###DEM/Hydrology</p>
+
+<p>A DEM covering the entire Watershed of interest is required. It is highly recommended to use a projection system with equal cell size (i.e. UTM).</p>
+
+<ol>
+  <li>Fill holes in the DEM (Spatial Analyst/Hydrology/Fill)</li>
+  <li>Generate Flow Direction Raster (Spatial Analyst/Hydrology/Flow Direction)</li>
+  <li>Generate Flow Accumulation Raster (Spatial Analyst/Hydrology/Flow Accumulation)</li>
+  <li>Convert Flow accumulation raster to SQKM
+    <ol>
+      <li>Use Spatial Analyst/Math/Times</li>
+      <li>Multiply raster by: (cellX size * conversion value to km) * (cellY size * conversion value to km)</li>
+      <li>The largest raster value should be in the range of the estimated km area of the watershed.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>###Precipitation Raster</p>
+
+<p>Download NRCS Annual Precip shapefile of the area.</p>
+
+<blockquote>
+  <p>Shortcut: Download Precip of entire State once and clip out Watershed area outline.</p>
+</blockquote>
+
+<ol>
+  <li>Add a Double precision field to the Precipitation Shapefile named “CM”.</li>
+  <li>Add “CM” values by using Calcuate Field = [“IN”] *</li>
+  <li>[Optional]  Clip this to the watershed extent to speed up processing time.</li>
+  <li>Use Polygon To Raster tool to convert “CM” field to raster. Make sure to use the same cell size, spatial reference and snap raster environment as the DEM.</li>
+</ol>
+
+<h3 id="stream-network">Stream Network</h3>
+
+<p>Stream network Polyline layer that defines the location where Bankfull polygons are to be generated.</p>
+
+<blockquote>
+  <p>Note: The tool uses the segmentation of the network. Too fine of segmentation will result in difficulty in finding the max drainage area for a section of stream, where too large of segmentation may result in overestimation of bankfull in many area.</p>
+</blockquote>
+
+<h3 id="valley-bottom">Valley Bottom</h3>
+
+<p>A valley bottom polygon is used to constrain the search area for determining max drainage area for a certain section of stream.</p>
+
+<blockquote>
+  <p>Shortcut: It may be possible to use a simple buffer polygon of the stream network, however, make sure that the ‘stream’ in the flow accumulation raster is within this buffer. Manual editing may be necessary at lower elevations with very large and flat valley bottoms.</p>
+</blockquote>
+
+<h2 id="generate-bankfull-polygon">Generate Bankfull Polygon</h2>
+
+<p>Once the inputs are ready, Open the Bankfull Polygon Tool</p>
+
+<ul>
+  <li>Specify a minimum bankfull value (i.e. 5m)</li>
+  <li>Specify an optional percent buffer size to increase the polygon size by a percent of the bankfull width (this is especially important for confinement). Use 100 for no buffer, or 200 for twice the size of the calculated bankfull width.</li>
+  <li>Specify a temporary workspace, and uncheck the box if you want to save or review any temporary files used in the processing.</li>
+</ul>
+
+<hr />
+
+<h1 id="about">About</h1>
+
+<p>The Bankfull Channel Tool is a separate Arc Python Toolbox from the confinement tool, and exists as a self-contained .pyt file.</p>
+
+<p>Dependencies:</p>
+
+<ul>
+  <li>Arcgis 10.1 or higher</li>
+  <li>
+    <p>Spatial Analyst extension</p>
+  </li>
+  <li>There are no additional external libraries required</li>
+</ul>
+
+<h2 id="summary-of-method">Summary of Method</h2>
+
+<ol>
+  <li>Generate Thiessen polygons from midpoints of segmented network, Clipped to Valley Bottom Extent</li>
+  <li>Use Zonal Statistics to find the Max values of Precip and Drainage Area for each Thiessen Polygon</li>
+  <li>Intersect Thiessen Polygons with Stream Network.</li>
+  <li>Calculate Bankfull Width for each segment based on the following regression:
+bf_width(m) = 0.177(DrainageArea^0.397)(Precip^0.453))</li>
+  <li>Perform Buffer on each segment:
+bf_buffer(m) = bf_width + bf_width/(percent buffer/100)</li>
+  <li>Generate a minimum width buffer</li>
+  <li>Merge and Dissolve the Bankfull Polygon with the Minimum width buffer.</li>
+  <li>Apply 10m “PAEK” smoothing.</li>
+</ol>
+
+<h2 id="output">Output</h2>
+
+<h3 id="bankfull-channel">Bankfull Channel</h3>
+
+<p>Bankfull polygons for each continuous section of  stream network.</p>
+
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+<div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/Archive/ConfinementTool.html'>Confinement Tool</a></li>							<li><a href='/Archive/ConfinementToolMethods.html'>Confinement Tool Methods</a></li>							<li><a href='/Background-Confinement-Uses.html'>Confinement Uses</a></li>							<li><a href='/BankfullChannelTool.html'>Bankfull Channel Polygon Tool</a></li>							<li><a href='/'>Confinement Tool Home</a></li>		</ul>	
+</div>
+
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    <script type="text/javascript">var NAVTitle = "Confinement Tool";var NAVHome = "";var NAVPages = [{url: "/Archive/ConfinementTool.html",absurl: "/Archive/ConfinementTool.html",slug: "ConfinementTool.html",title: "Confinement Tool",weight: ""},{url: "/Archive/ConfinementToolMethods.html",absurl: "/Archive/ConfinementToolMethods.html",slug: "ConfinementToolMethods.html",title: "Confinement Tool Methods",weight: ""},{url: "/Background-Confinement-Uses.html",absurl: "/Background-Confinement-Uses.html",slug: "Background-Confinement-Uses.html",title: "Confinement Uses",weight: ""},{url: "/BankfullChannelTool.html",absurl: "/BankfullChannelTool.html",slug: "BankfullChannelTool.html",title: "Bankfull Channel Polygon Tool",weight: ""},{url: "/",absurl: "/",slug: "",title: "Confinement Tool Home",weight: ""},];var SiteSettings = {"autoPageContents":{"active":true,"onHome":false},"sideMenu":{"homeItem":true,"startExpanded":false},"topmenu":[{"title":"Riverscapes","childern":[{"title":"Model Home","url":"index"},{"title":"Riverscapes Home","url":"http://riverscapes.xyz"},{"title":"About Riverscapes","url":"http://riverscapes.xyz/about.html"},{"title":"Who We Are","url":"http://riverscapes.xyz/who-we-are.html"},{"title":"News","url":"http://riverscapes.xyz/news.html"}]},{"title":"RC Tools","url":"http://riverscapes.xyz/rc-tools.html"},{"title":"RC Science","url":"http://riverscapes.xyz/rc-science.html"},{"title":"RC Data","url":"http://riverscapes.xyz/rc-data.html"},{"title":"RC Help","url":"http://riverscapes.xyz/rc-help.html"}]};</script>
+
+    <script src="/assets/js/dist.js"></script>
+
+  </body>
+
+</html>

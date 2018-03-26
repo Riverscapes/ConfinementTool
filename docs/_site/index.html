@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confinement Tool</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/assets/css/app.css">
+      <link rel="stylesheet" href="/assets/css/custom.css">
+      <script src="https://use.fontawesome.com/586b1e1322.js"></script>
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+      <h1>Confinement Tool</h1>
+        
+      
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><p>The Confinement Toolbox contains geoprocessing scripts for calculating confinement along a stream network. This tool is written in Python (2.7) for use in ArcGIS version 10.1.</p>
+
+<h2 id="news">News</h2>
+
+<p><strong><em>2017-APR-28</em></strong></p>
+
+<p>Version 2.2 Released! This version produces Riverscapes projects via <a href="https://github.com/SouthForkResearch/PythonRiverscapesProject">Riverscapes Project Python module</a>, adds outputs to the map (with a basic symbology applied), improved speed by removing old processes, plus other bugs fixed.</p>
+
+<p>Version 2.3 is already in the planning stages (see issues marked with Milestone 2.3), and will include features such as Riverscapes project linking, Generic Confinement analysis types,  and more!</p>
+
+<h2 id="download">Download</h2>
+
+<p><strong><a href="Downloads/ConfinementTool_2.2.03.zip">Version 2.2.03</a></strong> 2017 AUG 01</p>
+
+<p><code class="highlighter-rouge">* Fixed Bug with path naming for Realizations and Analyses</code></p>
+
+<p><a href="Releases">Previous Versions and Release Notes</a></p>
+
+<h3 id="installation">Installation</h3>
+
+<p>The Confinement Toolbox is provided as a zip file containing a .pyt file and supporting script files.</p>
+
+<ol>
+  <li>Unzip the contents to your computer (keep all files together).</li>
+  <li>Open ArcGIS.</li>
+  <li>Add the .pyt file to Arc toolbox as you would any other Geoprocesssing Toolbox.</li>
+</ol>
+
+<h2 id="using-the-confinement-tools">Using the Confinement Tools</h2>
+
+<p><img src="Images/ArcToolbox.png" alt="" /></p>
+
+<h3 id="project-mode">Project Mode</h3>
+<p>The Confinement Tool has a <strong><a href="About-Confinement-Projects">Project Mode</a></strong> to support confinement analysis organization and the RiverScapes Program.</p>
+
+<p><strong><a href="Create-a-Project">Start Here</a></strong> to calculate confinement as a Project</p>
+
+<h3 id="stand-alone-tools">Stand-Alone Tools</h3>
+<p>The primary Confinement Tools can also be used in a “stand-alone” analysis workflow.</p>
+
+<ul>
+  <li><strong><a href="Generate-Confining-Margins">Confining Margins Tool</a></strong> Generate confining margins and calculate Confinement values for a stream network.</li>
+  <li><strong><a href="Calculating-Confinement">Confinement By Segments</a></strong> Calculate confinement along <em>pre-existing</em> segments in the stream network.</li>
+  <li><strong><a href="MovingWindowTool">Moving Window Tool</a></strong> Tool for calculating confinement from a set of moving window segments.</li>
+</ul>
+
+<h1 id="acknowledgements">Acknowledgements</h1>
+<p>The Confinement Toolbox was written by Kelly Whitehead (South Fork Research, Seattle WA) with support, contributions and testing by</p>
+
+<ul>
+  <li>Carol Volk (SFR)</li>
+  <li><a href="http://joewheaton.org">Joe Wheaton</a> (Utah State University, Logan UT)</li>
+  <li><a href="http://etal.joewheaton.org/people/researchers-technicians/Wally">Wally MacFarlane</a> (USU)</li>
+  <li><a href="http://etal.joewheaton.org/people/researchers-technicians/jordan-gilbert">Jordan Gilbert</a> (USU)</li>
+  <li><a href="http://etal.joewheaton.org/people/researchers-technicians/gary-o-brien">Gary O’Brien</a> (USU)</li>
+  <li>Steve Fortney (TerrAqua, Inc.)</li>
+  <li>Jean Olson (SFR)</li>
+</ul>
+
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+<div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/Archive/ConfinementTool.html'>Confinement Tool</a></li>							<li><a href='/Archive/ConfinementToolMethods.html'>Confinement Tool Methods</a></li>							<li><a href='/Background-Confinement-Uses.html'>Confinement Uses</a></li>							<li><a href='/BankfullChannelTool.html'>Bankfull Channel Polygon Tool</a></li>							<li><a href='/'>Confinement Tool Home</a></li>		</ul>	
+</div>
+
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    <script type="text/javascript">var NAVTitle = "Confinement Tool";var NAVHome = "";var NAVPages = [{url: "/Archive/ConfinementTool.html",absurl: "/Archive/ConfinementTool.html",slug: "ConfinementTool.html",title: "Confinement Tool",weight: ""},{url: "/Archive/ConfinementToolMethods.html",absurl: "/Archive/ConfinementToolMethods.html",slug: "ConfinementToolMethods.html",title: "Confinement Tool Methods",weight: ""},{url: "/Background-Confinement-Uses.html",absurl: "/Background-Confinement-Uses.html",slug: "Background-Confinement-Uses.html",title: "Confinement Uses",weight: ""},{url: "/BankfullChannelTool.html",absurl: "/BankfullChannelTool.html",slug: "BankfullChannelTool.html",title: "Bankfull Channel Polygon Tool",weight: ""},{url: "/",absurl: "/",slug: "",title: "Confinement Tool Home",weight: ""},];var SiteSettings = {"autoPageContents":{"active":true,"onHome":false},"sideMenu":{"homeItem":true,"startExpanded":false},"topmenu":[{"title":"Riverscapes","childern":[{"title":"Model Home","url":"index"},{"title":"Riverscapes Home","url":"http://riverscapes.xyz"},{"title":"About Riverscapes","url":"http://riverscapes.xyz/about.html"},{"title":"Who We Are","url":"http://riverscapes.xyz/who-we-are.html"},{"title":"News","url":"http://riverscapes.xyz/news.html"}]},{"title":"RC Tools","url":"http://riverscapes.xyz/rc-tools.html"},{"title":"RC Science","url":"http://riverscapes.xyz/rc-science.html"},{"title":"RC Data","url":"http://riverscapes.xyz/rc-data.html"},{"title":"RC Help","url":"http://riverscapes.xyz/rc-help.html"}]};</script>
+
+    <script src="/assets/js/dist.js"></script>
+
+  </body>
+
+</html>

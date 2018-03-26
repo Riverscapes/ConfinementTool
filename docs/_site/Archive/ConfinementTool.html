@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confinement Tool</title>
+
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/assets/css/app.css">
+      <link rel="stylesheet" href="/assets/css/custom.css">
+      <script src="https://use.fontawesome.com/586b1e1322.js"></script>
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+
+      
+      <h4 class="subheader show-for-medium"><a href="/">Confinement Tool</a></h4>   
+      <h1>Confinement Tool</h1>
+            
+      
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><h1 id="confinement-tool">Confinement Tool</h1>
+<p><strong>Version 0.2.x</strong></p>
+
+<p>Tips:</p>
+
+<ul>
+  <li>Set Geoprocesssing Environments to disable M and Z values.</li>
+  <li>All input data should be in the same Projected Coordinate System. UTM is highly recommended.</li>
+</ul>
+
+<h2 id="input-parameters">Input Parameters</h2>
+
+<p><strong><em>Confinement Results Type</em></strong></p>
+
+<blockquote>
+  <p>This parameter is new for 0.2</p>
+</blockquote>
+
+<ul>
+  <li>Full - All outputs will be generated.</li>
+  <li></li>
+</ul>
+
+<blockquote>
+  <p>Note: Shapefile output is not possible with <strong>Full</strong> Results type.</p>
+</blockquote>
+
+<p><strong><em>Stream Network</em></strong></p>
+
+<p>This is the line network for which confinement will be calculated. If there are segments, confinement calculations will be determined for each segment (line feature).</p>
+
+<p>Requirements</p>
+
+<ul>
+  <li>Projected Coordinate System (same as other inputs)</li>
+  <li>No Z or M values</li>
+</ul>
+
+<p><strong>Valley Bottom Polygon</strong>*</p>
+
+<p>This polygon represents the boundary of the valley bottom (or other margin that the user is trying to model).</p>
+
+<p><strong><em>Channel Polygon (Bankfull Buffer)</em></strong></p>
+
+<p>The Stream Channel Polygon represents the area of the active channel of the stream. It is important that this polygon does not under-represent the margins of the channel, and in fact should be buffered sufficiently to account for any error or uncertainty in the data products. The stream Network should be entirely within this polygon.</p>
+
+<p>Requirements</p>
+
+<ul>
+  <li>Stream Network should be fully contained within the Stream Channel Polygon</li>
+  <li>Polygon sufficiently buffered to represent possible edges of active channel and any uncertainty in the GIS data</li>
+</ul>
+
+<p><strong><em>Scratch Workspace</em></strong></p>
+
+<h2 id="outputs">Outputs</h2>
+
+<p><strong><em>Raw Confining State</em></strong></p>
+
+<p>This is the name of a Polyline Feature Class that will be created in the FGDB to store the raw confining state of the Stream Network.</p>
+
+<blockquote>
+  <p>Note: This is does not contain the “Calculated Value” for confinement, even though this is the only required output for this tool. In order to calculate confinement, you must Segment the network and specify a value for the Output Confinement Calculated by Segments parameter.</p>
+</blockquote>
+
+<ul>
+  <li>The feature class will be overwritten if it already exists.</li>
+  <li>None of the Original Segments or their attributes are retained in this feature class.</li>
+</ul>
+
+<p>Attribute Fields:</p>
+<blockquote>
+  <p>Note: Short field names are for Shapefile output types</p>
+</blockquote>
+
+<ul>
+  <li><code class="highlighter-rouge">Confinement_Left</code>/<code class="highlighter-rouge">CON_LEFT</code> and <code class="highlighter-rouge">Confinement_Right</code>/<code class="highlighter-rouge">CON_RIGHT</code>: (Boolean)
+    <ul>
+      <li>True = section is confined on that side of the stream.</li>
+      <li>False = section is not confined on that side of the stream.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">Confinement_Type</code>/<code class="highlighter-rouge">CON_TYPE</code>: (String)
+    <ul>
+      <li>None = Not confined on either side of the stream.</li>
+      <li>Right = Confined on right side of stream.</li>
+      <li>Left = Confined on left side of the stream.</li>
+      <li>Both = Confined on both sides of the stream.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">IsConfined</code>: (Boolean)
+    <ul>
+      <li>True = section is considered confined (i.e. Confinement_Type = Right, left, or Both).</li>
+      <li>False = section is considered unconfined.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong><em>Confinement by Segments</em></strong></p>
+
+<p>The actual confinement calculation is run on this line by using the segments in the input stream network.</p>
+
+<p>For Results type <strong>Full</strong>:</p>
+
+<p>Confinement Calculation by using the Raw Confining State (Converged Margins):</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">Confinement_LineNetwork_All</code>: 
+Confinement as calculated by transferring the attributes from the <code class="highlighter-rouge">Raw Confining State</code> to the segmented network.</p>
+
+    <ul>
+      <li>Confinement = Sum of length of Confined margins divided by the Sum of the total length of segment, Expressed as a ratio:
+        <ul>
+          <li>0  = unconfined</li>
+          <li>1.0 = completely confined</li>
+        </ul>
+      </li>
+      <li>This method does not double count the lengths of the confining margins if the stream is confined on both sides of the channel at that location.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">Confinement_LineNetwork_Both</code>: Confinement is calculated where both sides of the stream are considered “Confined”.</li>
+  <li><code class="highlighter-rouge">Confinement_LineNetwork_Left</code>: Confinement is calculated where the left side of the stream is considered “Confined”.</li>
+  <li><code class="highlighter-rouge">Confinement_LineNetwork_Right</code>: Confinement is calculated where the right side of the stream is considered “Confined”.</li>
+</ul>
+
+<p>Confinement Calculation by Segmenting Channel Polygon:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">Confinement_Margin_Summed</code>
+Simplified method for calculating confinement using channel margin lengths. Length of confined margins on both sides of channel divided by total length of channel margins on both sides of channel. Values is a ratio 0 (unconfined) to 1.0 (confined on all margins). <em>This method does not exclude double counting of confinement if confined on both sides of the channel at that location</em>.</li>
+  <li><code class="highlighter-rouge">Length_ConfinedMargin_Left</code> and <code class="highlighter-rouge">Length_ConfinedMargin_Right</code>
+Length of confined margin for Left and Right sides of the channel for that segment.</li>
+  <li><code class="highlighter-rouge">Length_ChannelMargin_Left</code> and 
+<code class="highlighter-rouge">Length_ChannelMargin_Right</code>
+Length of channel margin for Left and Right sides of the channel for that segment.</li>
+  <li><code class="highlighter-rouge">Confinement_Margin_Left</code> and 
+<code class="highlighter-rouge">Confinement_Margin_Right</code> 
+Confinement expressed on each side of the bank separately.</li>
+</ul>
+
+<p><strong><em>Confining Margins</em></strong></p>
+
+<p>This polyline feature class represents the confining margins as the intersection of the input stream channel and valley bottom polygons.</p>
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+	<div class="title-bar">
+		<div class="title-bar-title"><i class="fa fa-file-text"></i> Page Contents</div>		
+	</div>
+	<div id="toc"></div>
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+<div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/Archive/ConfinementTool.html'>Confinement Tool</a></li>							<li><a href='/Archive/ConfinementToolMethods.html'>Confinement Tool Methods</a></li>							<li><a href='/Background-Confinement-Uses.html'>Confinement Uses</a></li>							<li><a href='/BankfullChannelTool.html'>Bankfull Channel Polygon Tool</a></li>							<li><a href='/'>Confinement Tool Home</a></li>		</ul>	
+</div>
+
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    <script type="text/javascript">var NAVTitle = "Confinement Tool";var NAVHome = "";var NAVPages = [{url: "/Archive/ConfinementTool.html",absurl: "/Archive/ConfinementTool.html",slug: "ConfinementTool.html",title: "Confinement Tool",weight: ""},{url: "/Archive/ConfinementToolMethods.html",absurl: "/Archive/ConfinementToolMethods.html",slug: "ConfinementToolMethods.html",title: "Confinement Tool Methods",weight: ""},{url: "/Background-Confinement-Uses.html",absurl: "/Background-Confinement-Uses.html",slug: "Background-Confinement-Uses.html",title: "Confinement Uses",weight: ""},{url: "/BankfullChannelTool.html",absurl: "/BankfullChannelTool.html",slug: "BankfullChannelTool.html",title: "Bankfull Channel Polygon Tool",weight: ""},{url: "/",absurl: "/",slug: "",title: "Confinement Tool Home",weight: ""},];var SiteSettings = {"autoPageContents":{"active":true,"onHome":false},"sideMenu":{"homeItem":true,"startExpanded":false},"topmenu":[{"title":"Riverscapes","childern":[{"title":"Model Home","url":"index"},{"title":"Riverscapes Home","url":"http://riverscapes.xyz"},{"title":"About Riverscapes","url":"http://riverscapes.xyz/about.html"},{"title":"Who We Are","url":"http://riverscapes.xyz/who-we-are.html"},{"title":"News","url":"http://riverscapes.xyz/news.html"}]},{"title":"RC Tools","url":"http://riverscapes.xyz/rc-tools.html"},{"title":"RC Science","url":"http://riverscapes.xyz/rc-science.html"},{"title":"RC Data","url":"http://riverscapes.xyz/rc-data.html"},{"title":"RC Help","url":"http://riverscapes.xyz/rc-help.html"}]};</script>
+
+    <script src="/assets/js/dist.js"></script>
+
+  </body>
+
+</html>
