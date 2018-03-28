@@ -1,3 +1,8 @@
+---
+title: Releases
+---
+
+
 # Downloads
 
 ## Version 2.2

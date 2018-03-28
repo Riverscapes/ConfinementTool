@@ -1,3 +1,7 @@
+---
+title: Moving Window Tool
+---
+
 The moving window analysis tool calculates length based attributes over a series of user specified window lengths. The results are reported at the center point of each window series (Seed Point).
 
 ![](Images/ArcToolbox-MovingWindow.png)

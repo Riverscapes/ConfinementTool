@@ -1,3 +1,7 @@
+---
+title: Calculating Confinement
+---
+
 This tool Calculates Confinement along the Segments in the Stream Network.
 
 ![](Images/ArcToolbox-ConfinementSegments.png)

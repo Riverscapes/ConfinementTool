@@ -1,3 +1,7 @@
+---
+title: Load Input Datasets
+---
+
 In order to generate confinement within a project, you must first load the three input files to the project.
 
 ![](Images/ArcToolbox-LoadDatasets.png)

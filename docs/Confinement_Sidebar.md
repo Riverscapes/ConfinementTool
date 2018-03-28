@@ -1,3 +1,8 @@
+---
+title: Extra links
+---
+
+
 [Home](https://github.com/SouthForkResearch/confinementtool/wiki)
 
 [Download and Installation](Releases)

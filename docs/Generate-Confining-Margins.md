@@ -1,3 +1,7 @@
+---
+title: Generate Confinement Margins
+---
+
 The Confining Margins tool generates both the Confining Margins (intersection of the edges of the valley bottom polygon and the active channel polygon) and transfers this information to the Stream Line Network using a near-function method. This information can then be used to calculate confinement values based on  segment lengths or moving windows along the line network. This tool can be used in either a Confinement Project or as a stand-alone tool. 
 
 ![](Images/ArcToolbox-ConfiningMargins.png)

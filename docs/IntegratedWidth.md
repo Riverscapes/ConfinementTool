@@ -1,4 +1,7 @@
-# Integrated Width Metrics
+---
+title: Integrated Width Metrics
+---
+
 
 The Confinement tool includes a set of two 'integrated width' attributes as well as a ratio value of these two values.
 

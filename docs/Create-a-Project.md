@@ -1,3 +1,7 @@
+---
+title: Create a project
+---
+
 A [Confinement Riverscapes Project](About-Confinement-Projects) is used to manage the contents of a Confinement Calculation and Analysis. 
 
 ![](Images/ArcToolbox-NewConfineProject.png)
