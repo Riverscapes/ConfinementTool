@@ -1,5 +1,5 @@
 ---
-title: Integrated Width Metrics
+title: Integrated Width Attributes
 ---
 
 
@@ -19,7 +19,6 @@ The Confinement tool includes a set of two 'integrated width' attributes as well
    $$
    w_i = A_{polygon} / l_{segment}
    $$
-
 
 
 

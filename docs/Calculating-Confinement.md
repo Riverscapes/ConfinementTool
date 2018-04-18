@@ -1,12 +1,10 @@
 ---
-title: Calculating Confinement
+title: Calculate Confinement By Segment
 ---
 
 This tool Calculates Confinement along the Segments in the Stream Network.
 
-![](Images/ArcToolbox-ConfinementSegments.png)
-
-[TOC]
+![](assets/images/ArcToolbox-ConfinementSegments.png)
 
 # Tool Usage
 
@@ -28,7 +26,7 @@ Confinement by Segments results are stored as a "confinement analysis" and are a
    7. (Optional) Specify a Temporary workspace.  If one is not specified, the "in_memory" workspace will be used.
    8. Click OK to run the tool.
 
-![](Images/AnalysisConfinementSegments.png)
+![](assets/images/AnalysisConfinementSegments.png)
 
 9. The Project will store the outputs of the anaysis in the following structure:
    - **ProjectFolder**
@@ -55,6 +53,12 @@ Confinement by Segments results are stored as a "confinement analysis" and are a
 # About
 
 ## Methods
+
+1. Calculate segment length for each segment
+2. Use summary statistics to Sum lengths for confinement and constriction for 
+3. Use Pivot Tables on each segment ID.
+4. Calculate Confinement and Constriction for each SegmentID.
+5. Join Results to network and copy results to output. 
 
 ## Outputs
 

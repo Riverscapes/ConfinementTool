@@ -4,7 +4,7 @@ title: Load Input Datasets
 
 In order to generate confinement within a project, you must first load the three input files to the project.
 
-![](Images/ArcToolbox-LoadDatasets.png)
+![](assets/images/ArcToolbox-LoadDatasets.png)
 
 ## Stream Network
 This is the basic line network that represents the stream. Confinement calculations and attributes will be applied to a final output based on this network. 
@@ -40,7 +40,7 @@ This polygon represents the margins of the valley bottom that provides a confini
     > These are listed as "optional" inputs, but you will need one of each type loaded in order to proceed with the confinement workflow.
   3. Click OK to import the inputs into the project.
 
-![Add Inputs Tool](Images/AddInputsToProjectToolWindow.PNG)
+![Add Inputs Tool](assets/images/AddInputsToProjectToolWindow.PNG)
 
 3. The Project.xml file will be updated to include these inputs, and they will be stored appropriately in the Project folder structure:
 
@@ -57,7 +57,7 @@ This polygon represents the margins of the valley bottom that provides a confini
 
    The following is an example of a project with two channel polygons, two stream networks, and one valley bottom added to it:
 
-   ![](Images/Folder-ProjectInputs.png)
+   ![](assets/images/Folder-ProjectInputs.png)
 
 > **At this point in the project, do not move or rename any files within the project folder. Doing so could cause the project to become corrupt. **
 >

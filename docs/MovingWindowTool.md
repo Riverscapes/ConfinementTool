@@ -1,12 +1,10 @@
 ---
-title: Moving Window Tool
+title: Moving Window Analysis
 ---
 
-The moving window analysis tool calculates length based attributes over a series of user specified window lengths. The results are reported at the center point of each window series (Seed Point).
+The Moving Window Analysis Tool calculates length based attributes over a series of user specified window lengths. The results are reported at the center point of each window series (Seed Point).
 
-![](Images/ArcToolbox-MovingWindow.png)
-
-[TOC]
+![](assets/images/ArcToolbox-MovingWindow.png)
 
 # Tool Usage
 
@@ -30,7 +28,7 @@ Moving window results are stored as a "confinement analysis" and are associated 
    9. (Optional) Specify a Temporary workspace.  If one is not specified, the "in_memory" workspace will be used.
    10. Click OK to run the tool.
 
-![](Images/MovingWindowToolWindow.PNG)
+![](assets/images/MovingWindowToolWindow.PNG)
 
 
 

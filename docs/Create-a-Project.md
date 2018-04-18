@@ -4,13 +4,13 @@ title: Create a project
 
 A [Confinement Riverscapes Project](About-Confinement-Projects) is used to manage the contents of a Confinement Calculation and Analysis. 
 
-![](Images/ArcToolbox-NewConfineProject.png)
+![](assets/images/ArcToolbox-NewConfineProject.png)
 
 ## Before You Start
 
 Make sure you have the following datasets, cleaned and ready to go:
 
-- ***Stream Line Network*** Clean and segment the stream network as desired. Since Confinement values will be calculated using the segmentation of the network you load into the project, you must do this ***prior*** to loading the project. We recommend using the [GNAT Toolset](https://github.com/SouthForkResearch/gnat/wiki) to perform these actions.
+- ***Stream Line Network*** Clean and segment the stream network as desired. Since Confinement values will be calculated using the segmentation of the network you load into the project, you must do this ***prior*** to loading the project. We recommend using the [GNAT Toolset](gnat.riverscapes.xyz) to perform these actions.
 
 
 - ***Valley Bottom Polygon*** Make sure the valley bottom polygon is clean, and represents the confining margin boundary throughout the network. Ideally, this polygon should contain the entire stream network to produce the best results, but is not a requirement for the confinement tool to function.
@@ -41,7 +41,7 @@ You can always load new inputs to the confinement project, however, you cannot (
 
   6. Click OK to generate the new project XML file.
 
-![Tool Window](Images/NewConfinementProjectToolWindow.PNG "Confinement Project")
+![Tool Window](assets/images/NewConfinementProjectToolWindow.PNG "Confinement Project")
 
 7. The tool should produce the following outupts using the above parameters:
 

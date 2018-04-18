@@ -7,8 +7,6 @@ The Bankfull Channel Tool generates an approximate bankfull channel, with an opt
 
 ![]()
 
-[TOC]
-
 # Workflow
 
 ## Prepare Inputs
@@ -55,7 +53,6 @@ Once the inputs are ready, Open the Bankfull Polygon Tool
 * Specify a minimum bankfull value (i.e. 5m) 
 * Specify an optional percent buffer size to increase the polygon size by a percent of the bankfull width (this is especially important for confinement). Use 100 for no buffer, or 200 for twice the size of the calculated bankfull width.
 * Specify a temporary workspace, and uncheck the box if you want to save or review any temporary files used in the processing.
-
 
 
 ------
