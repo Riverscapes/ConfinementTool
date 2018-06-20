@@ -131,7 +131,23 @@ class BankfullChannelTool(object):
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
-        return True
+        # Code added by DDH on 20/6/18
+        if arcpy.ProductInfo() in ["ArcView","ArcEditor","ArcInfo"]:
+            if arcpy.ProductInfo() in ["ArcView","ArcEditor"]:
+                if arcpy.CheckExtension("Spatial") == "Available":
+                    # Spatial Analyst extension available so check it out as an
+                    # Arcview/Spatial combination is valid to allow the Polygon
+                    # to raster tool to execute.
+                    arcpy.CheckOutExtenstion("Spatial")
+                else:
+                    # Extension not available so tool will not work
+                    return False
+            else:
+                # Advance licensed machine
+                return True
+        else:
+            # No valid desktop license
+            return False
 
     def updateParameters(self, parameters):
         """Modify the values and properties of parameters before internal
@@ -206,7 +222,10 @@ class PrecipitationToRasterTool(object):
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
-        return True
+        if arcpy.ProductInfo() != "ArcView":
+            return False
+        else:
+            return True
 
     def updateParameters(self, parameters):
         """Modify the values and properties of parameters before internal
