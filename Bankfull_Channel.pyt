@@ -16,7 +16,7 @@
 import arcpy
 from arcpy.sa import *
 
-__version__ = 0.0.1
+__version__ = '0.0.1'
 
 class Toolbox(object):
     def __init__(self):
@@ -159,7 +159,7 @@ class BankfullChannelTool(object):
              p[6].valueAsText,
              p[7].valueAsText,
              p[8].valueAsText)
-        
+
         return
 
 
@@ -329,7 +329,7 @@ def main(network, drarea, precip, valleybottom, output, MinBankfullWidth, dblPer
     #smooth for final bunkfull polygon
     arcpy.AddMessage("smoothing final bankfull polygon")
     arcpy.SmoothPolygon_cartography(datasets['bankfull_dissolve'], output, "PAEK", "10 METERS") # TODO: Expose parameter?
-    
+
     # Todo: add params as fields to shp.
 
     if deleteTemp == "True":
