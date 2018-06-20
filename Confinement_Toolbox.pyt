@@ -1,6 +1,6 @@
 ﻿# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Name:        Stream and Valley Confinement Toolbox                          #
-# Purpose:     Tools for and calculating confinement on a stream              # 
+# Purpose:     Tools for and calculating confinement on a stream              #
 #              network or using a moving window along the stream network      #
 #                                                                             #
 # Authors:     Kelly Whitehead (kelly@southforkresearch.org)                  #
@@ -201,7 +201,7 @@ class LoadInputsTool(object):
             makedirs(pathInputs)
 
 
-        # KMW - The following is a lot of repeated code for each input. It contains file and folder creation and copying, rather than useing the project module to do this. This could be streamlined in the future, but
+        # KMW - The following is a lot of repeated code for each input. It contains file and folder creation and copying, rather than using the project module to do this. This could be streamlined in the future, but
         # is working at the moment.
         if p[1].valueAsText: # Stream Network Input
             pathStreamNetworks = pathInputs + "\\StreamNetworks"
@@ -555,7 +555,9 @@ class ConfiningMarginTool(object):
             idStreamNetwork = newConfinementProject.get_dataset_id(p[2].valueAsText)
             idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
             idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
-            idRealization = newConfinementProject.Realizations[p[1].valueAsText].id
+            # DDH - This line was causing tool to fail, after trying to follow logic I think this code was attempting retrieve a realization ID befor it ever existed
+            # So I Commented it out and replaced it with the below line, this seems to be work newConfinementProject.Realizations[p[1].valueAsText].id
+            idRealization = realization_id
 
             outputRawConfiningState = Riverscapes.Dataset()
             outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,
@@ -1452,7 +1454,7 @@ paramTempWorkspace = arcpy.Parameter(
 paramTempWorkspace.value = arcpy.env.scratchWorkspace
 
 
-# Other Functions # 
+# Other Functions #
 def setEnvironmentSettings():
     arcpy.env.OutputMFlag = "Disabled"
     arcpy.env.OutputZFlag = "Disabled"
