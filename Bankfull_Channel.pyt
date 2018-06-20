@@ -178,7 +178,6 @@ class BankfullChannelTool(object):
 
         return
 
-
 class PrecipitationToRasterTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
@@ -222,10 +221,7 @@ class PrecipitationToRasterTool(object):
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
-        if arcpy.ProductInfo() != "ArcView":
-            return False
-        else:
-            return True
+        return True
 
     def updateParameters(self, parameters):
         """Modify the values and properties of parameters before internal
@@ -362,6 +358,4 @@ def main(network, drarea, precip, valleybottom, output, MinBankfullWidth, dblPer
 
 if __name__ == "__main__":
     import argparse
-
-
     #main()
