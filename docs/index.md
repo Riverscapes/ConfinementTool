@@ -14,7 +14,7 @@ Version 2.3 is already in the planning stages (see issues marked with Milestone 
 
 ## Download
 
-**[Version 2.2.03](Downloads/ConfinementTool_2.2.03.zip)** 2017 AUG 01
+**[Latest Version](https://github.com/Riverscapes/ConfinementTool/releases/latest)** 2017 AUG 01
 
 ``` * Fixed Bug with path naming for Realizations and Analyses```
 
