@@ -158,17 +158,24 @@ class LoadInputsTool(object):
         self.category = "Confinement Project Management"
 
     def getParameterInfo(self):
-        """Define parameter definitions"""
+        ''' Description:
+                Define parameter definitions
+
+            Modified:
+                28/8/18 - DDH - Added 4th parameter and removed code making p1-p3 optional.
+
+        '''
 
         p1 = paramStreamNetwork
         p2 = paramChannelPolygon
         p3 = paramValleyBottom
 
-        p1.parameterType = "Optional"
-        p2.parameterType = "Optional"
-        p3.parameterType = "Optional"
+        # Create an option buffer Parameter, the default will be zero metres, if the user changes
+        # this then the channel polygon will be buffered during the export to shapefile
+        p4 = arcpy.Parameter(name="paramBufferDistance",displayName="Buffer Channel Polygon (m)",direction="Input",datatype="GPLong",parameterType="Optional",enabled=True,multiValue=False)
+        p4.value = 0
 
-        params = [paramProjectXML,p1,p2,p3]
+        params = [paramProjectXML,p1,p2,p3,p4]
 
         return params
 
@@ -183,8 +190,20 @@ class LoadInputsTool(object):
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter.  This method is called after internal validation."""
+        '''
+            Description:
+                Modify the messages created by internal validation for each tool
+                parameter.  This method is called after internal validation.
+
+            Modified:
+                28/8/18 - DDH - Check on sensible 4th parameter value, must be zero or greater.
+        '''
+
+        p = parameters[4]
+        if p.value < 0:
+            p.setErrorMessage("Negatives buffer distances are invalid, must be zero or greater!")
+        else:
+            p.clearMessage()
         return
 
     def execute(self, p, messages):
@@ -195,6 +214,8 @@ class LoadInputsTool(object):
             Updates:
                 23/8/18 - DDH - Error trapping and useful messages added to inform user and help with debugging.
                 23/8/18 - DDH - Removed redundant import from module os
+                28/8/18 - DDH - Added new code that will buffer the channel polygon as it stores it in the project
+                                sub-folder, but only if buffer distance is greater than zero.
         """
 
         try:
@@ -231,6 +252,8 @@ class LoadInputsTool(object):
                 newConfinementProject.addInputDataset(nameStreamNetwork,id_streamnetwork,path.join(path.relpath(pathStreamNetworkID, pathProject),nameStreamNetwork) + ".shp",p[1].valueAsText)
 
             if p[2].valueAsText: # Channel Polygon
+                buffDist = p[4].value # This will be a long of 0 or greater
+
                 pathChannelPolygons = pathInputs + "\\ChannelPolygons"
                 nameChannelPolygon = arcpy.Describe(p[2].valueAsText).basename
                 if not arcpy.Exists(pathChannelPolygons):
@@ -243,9 +266,17 @@ class LoadInputsTool(object):
                 makedirs(pathChannelPolygonID)
                 arcpy.AddMessage("Subfolder " + id_channelpolygon + " created.")
 
-                # Copy dataset to shapefile in input subfolder
-                arcpy.AddMessage("Copying channel polygon into its input folder...")
-                arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText, pathChannelPolygonID, nameChannelPolygon)
+                if buffDist == 0:
+                    # Copy dataset to shapefile in input subfolder
+                    arcpy.AddMessage("Copying channel polygon into its input folder...")
+                    arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText, pathChannelPolygonID, nameChannelPolygon)
+                else:
+                    # Create a buffered version of channel dataset
+                    arcpy.AddMessage("Buffering channel polygon into its input folder...")
+                    outFC = path.join(pathChannelPolygonID, nameChannelPolygon)+ ".shp"
+                    dist = str(buffDist) + " METERS"
+                    arcpy.Buffer_analysis(p[2].valueAsText,outFC,dist,"FULL","ROUND","NONE","#","PLANAR")
+
                 newConfinementProject.addInputDataset(nameChannelPolygon,id_channelpolygon,path.join(path.relpath(pathChannelPolygonID, pathProject),nameChannelPolygon) + ".shp",p[2].valueAsText)
 
             if p[3].valueAsText: # Valley  Bottom
