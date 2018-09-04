@@ -292,12 +292,107 @@ def transfer_line(fcInLine,fcToLine,strStreamSide):
         arcpy.SelectLayerByLocation_management(lyrToLineSegments,"INTERSECT",lyrNearPointsCentroid,selection_type="NEW_SELECTION")#"0.01 Meter","NEW_SELECTION")
         arcpy.CalculateField_management(lyrToLineSegments,strConfinementField,1,"PYTHON")
 
+        bOK = postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplitPoints)
+        if not bOK:
+            arcpy.AddWarning("The post fix confinement code returned an error, centreline will be attributed incorrectly")
         return fcOutput
     except Exception as e:
         arcpy.AddError("Error in transfer_line function: " + str(e))
 
+def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplitPoints):
+    '''
+        Description:
+            This code attempts to fix the issue described in https://github.com/Riverscapes/ConfinementTool/issues/30.
+
+            The code steps through each segment, selects it's near points, gets their ID's, use these to select the split points
+            and then checks if ORIG_FID are constant. If they are the segment is correctly attribute the confinement side. If they
+            are not then this must be an erro and the segment field will be reset.
+
+        Inputs:
+            fcOutput                 = This is the segmented network for the RIGHT or LEFT side
+            strStreamSide            = LEFT or RIGHT
+            lyrNearPointsConfinement = A FeatureLayer, these are the points that were used to split the network, we will hook into the
+                                       IN_FID field.
+            fcSplitPoints            = These are the end points (nodes) of the confinement margin polyline and were used to create the points in
+                                       lyrNearPointsConfinement. This is a featureclass.
+
+        Outputs:
+            Returns True if code execude without eror else False.
+
+        Limitations:
+            Code assumes the temporary workspace is a file geodatabase.
+
+        Author:
+            Duncan Hornby (ddh@geodata.soton.ac.uk)
+
+        Created:
+            4/9/18
+    '''
+    # This is used to overcome issues of tolerance in the select by location tool, currently set to 5cm
+    # you may need to change this.
+    search_distance="5 Centimeters"
+
+    try:
+        arcpy.AddMessage("Applying post fix confinement code to resolve geometry issues...")
+        aField = "Con_" + strStreamSide
+
+        # Create a layer object so selections can be done
+        lyrSplitPoints = "lyrSplitPoints"
+        arcpy.MakeFeatureLayer_management(fcSplitPoints,lyrSplitPoints)
+
+        # Get a count on number of features to process and initialise progress bar
+        resObj = arcpy.GetCount_management(fcOutput)
+        n = int(resObj.getOutput(0))
+        arcpy.SetProgressor("step","Checking and fixing segments...",0,n,1)
+
+        # Main loop to step through each segment and check
+        with arcpy.da.UpdateCursor(fcOutput,["SHAPE@",aField]) as cursor:
+            for row in cursor:
+                arcpy.SetProgressorPosition()
+                geom = row[0]
+
+                # Use polyline to select near points
+                arcpy.SelectLayerByLocation_management(lyrNearPointsConfinement,"INTERSECT",geom,search_distance,"NEW_SELECTION","NOT_INVERT")
+
+                # Now read the IN_FID values from the selected rows into a list
+                idList = []
+                with arcpy.da.SearchCursor(lyrNearPointsConfinement,["IN_FID"]) as cursor2:
+                    for row2 in cursor2:
+                        idList.append(row2[0])
+
+                # Check u/s and d/s limit selections where only 1 point will be selected
+                if len(idList) == 1:
+                    arcpy.AddMessage("Skipping an end segment")
+                else:
+
+                    # Now build a SQL query that can be used to select rows using the ID's in idList in the split points layer
+                    myTup = str(tuple(idList))
+                    sql = "OBJECTID IN " + myTup
+                    #arcpy.AddMessage(sql)
+                    arcpy.SelectLayerByAttribute_management(lyrSplitPoints, "NEW_SELECTION", sql)
+
+                    # Now read the ORIG_FID into a set, if 2 values are found then the line was incorrectly tagged and the aField needs resetting to null
+                    s = set()
+                    with arcpy.da.SearchCursor(lyrSplitPoints,["ORIG_FID"]) as cursor3:
+                        for row3 in cursor3:
+                            s.add(row3[0])
+
+                    if len(s) == 2:
+                        # Segmented was incorrectly identified the wrong confinement side, reset to null
+                        row[1] = None
+                    else:
+                        row[1] = 1 # Be aware this may incorrectly set a segment that has 3 node intersections at one end.
+                    cursor.updateRow(row)
+
+        # Got here code ran without error
+        arcpy.ResetProgressor()
+        return True
+    except Exception as e:
+        arcpy.AddError("Error in postFIXtoConfinement function: " + str(e))
+        return False
+
 def integrated_width(fcInLines, fcInPolygons, fcOutLines, strMetricName="", boolSegmentPolygon=False, temp_workspace="in_memory"):
-     # This code is nvere executed as the boolean flag that calls this is always FALSE
+     # This code is never executed as the boolean flag that calls this is always FALSE
     fcMemLines = gis_tools.newGISDataset(temp_workspace,"lineNetwork")
     arcpy.CopyFeatures_management(fcInLines,fcMemLines)
     fieldLength = gis_tools.resetField(fcMemLines,"IW_Length","DOUBLE")
