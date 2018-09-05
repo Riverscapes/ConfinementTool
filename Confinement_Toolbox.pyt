@@ -451,7 +451,12 @@ class ConfiningMarginTool(object):
         self.Category = 'Confinement Tools'
 
     def getParameterInfo(self):
-        """Define parameter definitions"""
+        '''
+            Description:
+                Define parameter definitions
+
+            Updates: 5/9/18 - DDH - Added Filter by Length Parameter
+        '''
 
         # 0
         # paramProjectXML
@@ -477,8 +482,11 @@ class ConfiningMarginTool(object):
         paramOutputConfiningMargins = arcpy.Parameter(displayName="Output Confining Margins", name="fcOutputConfiningMargins", datatype="DEFeatureClass", parameterType="Optional", direction="Output")
         paramOutputConfiningMargins.symbology = path.join(path_lyr,"") + "Confining_Margins.lyr"
 
+        paramFilterByLength = arcpy.Parameter(name="FilterByLength",displayName="Filter by Length (m)",direction="Input",datatype="GPDouble",parameterType="Required")
+        paramFilterByLength.value = 5 # Default value of 5m
+
         # Note: Parameters common to all tools are defined from lines at end of code.
-        return [paramProjectXML,paramRealizationName,paramStreamNetwork,paramValleyBottom,paramChannelPolygon,paramOutputRawConfiningState,paramOutputConfiningMargins,paramTempWorkspace]
+        return [paramProjectXML,paramRealizationName,paramStreamNetwork,paramValleyBottom,paramChannelPolygon,paramFilterByLength,paramOutputRawConfiningState,paramOutputConfiningMargins,paramTempWorkspace]
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
@@ -493,10 +501,10 @@ class ConfiningMarginTool(object):
             if p[0].value and arcpy.Exists(p[0].valueAsText):
                 # Set Project Mode
 
-                p[5].enabled = "False"
                 p[6].enabled = "False"
-                p[5].parameterType = "Optional"
+                p[7].enabled = "False"
                 p[6].parameterType = "Optional"
+                p[7].parameterType = "Optional"
 
                 currentProject = Riverscapes.Project(p[0].valueAsText)
 
@@ -517,20 +525,27 @@ class ConfiningMarginTool(object):
                 if p[1].altered:
                     if p[1].valueAsText:
                         realization_id = currentProject.get_next_realization_id()
-                        p[5].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\RawConfiningState.shp"
-                        p[6].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\ConfiningMargins.shp"
+                        p[6].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\RawConfiningState.shp"
+                        p[7].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\ConfiningMargins.shp"
 
             else:
-                p[5].enabled = "True"
                 p[6].enabled = "True"
-                p[5].parameterType = "Required"
-                p[6].parameterType = "Optional"
+                p[7].enabled = "True"
+                p[6].parameterType = "Required"
+                p[7].parameterType = "Optional"
+
+
 
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter.  This method is called after internal validation."""
+        '''
+            Description:
+                Modify the messages created by internal validation for each tool
+                parameter.  This method is called after internal validation.
+
+            Updates: 5/9/18 - DDH - Added error check for filter by length parameter and updated parameter indices
+        '''
 
         if parameters[0].valueAsText:
             newConfinementProject = Riverscapes.Project(parameters[0].valueAsText)
@@ -539,6 +554,12 @@ class ConfiningMarginTool(object):
                 if realization == parameters[1].valueAsText:
                     parameters[1].setErrorMessage("Realization " + parameters[1].valueAsText + " already exists.")
                     return
+
+        # Check if filter value is negative
+        if parameters[5].value < 0:
+            parameters[5].setErrorMessage("Negative filter lengths are invalid, must be zero or greater")
+        else:
+            parameters[5].clearMessage()
 
         # Run a bunch a quality control tests on inputs and set any appropriate warnings
         testProjected(parameters[2])
@@ -550,11 +571,16 @@ class ConfiningMarginTool(object):
         testLayerSelection(parameters[2])
         testLayerSelection(parameters[3])
         testLayerSelection(parameters[4])
-        testWorkspacePath(parameters[7])
+        testWorkspacePath(parameters[8])
         return
 
     def execute(self, p, messages):
-        """The source code of the tool."""
+        '''
+            Description:
+                The source code of the tool.
+
+            Updates: 5/9/18 - DDH - Indices changed due to new filter by length parameter
+        '''
         reload(ConfiningMargins)
 
 
@@ -565,13 +591,7 @@ class ConfiningMarginTool(object):
                 realization_id = newConfinementProject.get_next_realization_id()
                 makedirs(path.join(newConfinementProject.projectPath, "Outputs", realization_id))
 
-        bOK = ConfiningMargins.main(p[2].valueAsText,
-                              p[3].valueAsText,
-                              p[4].valueAsText,
-                              p[5].valueAsText,
-                              p[6].valueAsText,
-                              getTempWorkspace(p[7].valueAsText),
-                              False) # If Not specified, in memory is used
+        bOK = ConfiningMargins.main(p[2].valueAsText,p[3].valueAsText,p[4].valueAsText,p[5].value,p[6].valueAsText,p[7].valueAsText,getTempWorkspace(p[8].valueAsText),False) # If Not specified, in memory is used
 
         if bOK:
             # on success, rewrite xml file if in project mode
@@ -588,11 +608,11 @@ class ConfiningMarginTool(object):
                 idRealization = realization_id
 
                 outputRawConfiningState = Riverscapes.Dataset()
-                outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,
+                outputRawConfiningState.create(arcpy.Describe(p[6].valueAsText).basename,
                                                path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
 
                 outputConfiningMargins = Riverscapes.Dataset()
-                outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,
+                outputConfiningMargins.create(arcpy.Describe(p[7].valueAsText).basename,
                                               path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
 
                 newRealization = Riverscapes.ConfinementRealization()
