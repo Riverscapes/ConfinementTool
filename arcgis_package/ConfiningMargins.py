@@ -1,18 +1,19 @@
 ﻿# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Name:        Valley Confinement Tool                                        #
-# Purpose:     Calculate Valley Confinement Along a Stream Network            #
-#                                                                             #
-# Author:      Kelly Whitehead (kelly@southforkresearch.org)                  #
-#              South Fork Research, Inc                                       #
-#              Seattle, Washington                                            #
-#                                                                             #
-# Created:     2014-Nov-01                                                    #
-# Version:     1.3                                                            #
-# Modified:    2016-Feb-10                                                    #
-# Modified:    23/8/2018 - DDH - Improved messaging/error trapping            #
-#                                                                             #
-# Copyright:   (c) Kelly Whitehead 2016                                       #
-#                                                                             #
+# Name:        Valley Confinement Tool
+# Purpose:     Calculate Valley Confinement Along a Stream Network
+#
+# Author:      Kelly Whitehead (kelly@southforkresearch.org)
+#              South Fork Research, Inc
+#              Seattle, Washington
+#
+# Created:     2014-Nov-01
+# Version:     1.3
+# Modified:    2016-Feb-10
+# Modified:    23/8/2018 - DDH - Improved messaging/error trapping
+#              5/9/2018  - DDH - Updated main to take and process FilterByLength
+#
+# Copyright:   (c) Kelly Whitehead 2016
+#
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #!/usr/bin/env python
 
@@ -31,15 +32,14 @@ import DividePolygonBySegment
 
 
 # # Main Function # #
-def main(fcInputStreamLineNetwork,
-         fcInputValleyBottomPolygon,
-         fcInputChannelPolygon,
-         fcOutputRawConfiningState,
-         fcOutputConfiningMargins,
-         scratchWorkspace,
-         boolIntegratedWidthAttributes=False):
+def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolygon,filterByLength,fcOutputRawConfiningState,fcOutputConfiningMargins,scratchWorkspace,boolIntegratedWidthAttributes=False):
     '''
-        Updated: 24/8/18 - DDH Now returns True/False if code succeeds or fails, this can be used by calling module
+        Description:
+            Main processing function for creating the confinement margins and segmenting the network.
+
+        Updated: 24/8/18 - DDH - Now returns True/False if code succeeds or fails, this can be used by calling module
+                  9/5/18 - DDH - Now uses FilterByLength to delete out confinement margins created by the intersection that fall below
+                                 the specified length. Default is 5m
     '''
     try:
 
@@ -68,6 +68,26 @@ def main(fcInputStreamLineNetwork,
         fcConfiningMarginsMultipart = gis_tools.newGISDataset(scratchWorkspace, "ConfiningMargins_Multipart")
         arcpy.Intersect_analysis([fcConfinedChannel, fcInputValleyBottomPolygon], fcConfiningMarginsMultipart, output_type="LINE")
         arcpy.MultipartToSinglepart_management(fcConfiningMarginsMultipart,fcConfiningMargins)
+
+        # Delete lines that fall below the specified length
+        if filterByLength > 0:
+            # Make a temporary layer, select lines and delete
+            arcpy.AddMessage("... Adding Length field and updating")
+            arcpy.MakeFeatureLayer_management(fcConfiningMargins,"tempLayer")
+            arcpy.AddField_management("tempLayer","Length","DOUBLE")
+            arcpy.CalculateField_management("tempLayer","Length","!SHAPE.length@METERS!","PYTHON_9.3")
+            arcpy.AddMessage("... Selecting lines smaller than " + str(filterByLength) + "m and deleting")
+            arcpy.SelectLayerByAttribute_management("tempLayer","NEW_SELECTION",'"' + "Length" +'"' + " <= " + str(filterByLength))
+            descObj = arcpy.Describe("tempLayer")
+            if len(descObj.FIDSet) > 0:
+                # A Selection exists so delete
+                arcpy.DeleteFeatures_management("tempLayer")
+
+            # Clean up
+            del descObj
+            arcpy.Delete_management("tempLayer")
+        else:
+            arcpy.AddMessage("Filter by Length parameter was set to 0m, skipping deleting features")
 
         # Merge segments in Polyline Center to create Route Layer
         arcpy.AddMessage("... Dissolving stream network into routes")
@@ -110,7 +130,7 @@ def main(fcInputStreamLineNetwork,
         fcChannelBankPolygons = gis_tools.newGISDataset(scratchWorkspace, "Bank_Polygons")
         arcpy.FeatureToPolygon_management(fcChannelBankLines, fcChannelBankPolygons)
 
-        # # Intersect and Split Channel polygon Channel Edges and Polyline Confinement using cross section lines
+        # Intersect and Split Channel polygon Channel Edges and Polyline Confinement using cross section lines
         arcpy.AddMessage("Intersect and Split Channel Polygons...")
         fcIntersectPoints_ChannelMargins = gis_tools.newGISDataset(scratchWorkspace, "IntersectPoints_ChannelMargins")
         fcIntersectPoints_ConfinementMargins = gis_tools.newGISDataset(scratchWorkspace, "IntersectPoints_ConfinementMargins")
@@ -305,8 +325,8 @@ def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplit
             This code attempts to fix the issue described in https://github.com/Riverscapes/ConfinementTool/issues/30.
 
             The code steps through each segment, selects it's near points, gets their ID's, use these to select the split points
-            and then checks if ORIG_FID are constant. If they are the segment is correctly attribute the confinement side. If they
-            are not then this must be an erro and the segment field will be reset.
+            and then checks if ORIG_FID are constant. If they are, the segment is correctly attributed with confinement side. If they
+            are not then this must be an error and the segment field will be reset.
 
         Inputs:
             fcOutput                 = This is the segmented network for the RIGHT or LEFT side
@@ -317,7 +337,7 @@ def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplit
                                        lyrNearPointsConfinement. This is a featureclass.
 
         Outputs:
-            Returns True if code execude without eror else False.
+            Returns True if code executed without error else False.
 
         Limitations:
             Code assumes the temporary workspace is a file geodatabase.
