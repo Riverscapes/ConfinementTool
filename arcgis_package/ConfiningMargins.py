@@ -1,4 +1,4 @@
-﻿# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+﻿#
 # Name:        Valley Confinement Tool
 # Purpose:     Calculate Valley Confinement Along a Stream Network
 #
@@ -11,10 +11,11 @@
 # Modified:    2016-Feb-10
 # Modified:    23/8/2018 - DDH - Improved messaging/error trapping
 #              5/9/2018  - DDH - Updated main to take and process FilterByLength
+#              6/9/2018  - DDH - Added prepConfinementOutput function to clean up output
 #
 # Copyright:   (c) Kelly Whitehead 2016
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
 #!/usr/bin/env python
 
 # # Import Modules # #
@@ -38,8 +39,9 @@ def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolyg
             Main processing function for creating the confinement margins and segmenting the network.
 
         Updated: 24/8/18 - DDH - Now returns True/False if code succeeds or fails, this can be used by calling module
-                  9/5/18 - DDH - Now uses FilterByLength to delete out confinement margins created by the intersection that fall below
+                  5/9/18 - DDH - Now uses FilterByLength to delete out confinement margins created by the intersection that fall below
                                  the specified length. Default is 5m
+                  6/9/18 - DDH - Creates MarginID field and purges out all other fields except Length
     '''
     try:
 
@@ -89,7 +91,7 @@ def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolyg
         else:
             arcpy.AddMessage("Filter by Length parameter was set to 0m, skipping deleting features")
 
-        # Merge segments in Polyline Center to create Route Layer
+        # Merge segments in Polyline Centerline to create Route Layer
         arcpy.AddMessage("... Dissolving stream network into routes")
         arcpy.env.outputZFlag = "Disabled" # 'empty' z values can cause problem with dissolve
         fcStreamNetworkDissolved = gis_tools.newGISDataset(scratchWorkspace, "StreamNetworkDissolved") # one feature per 'section between trib or branch junctions'
@@ -233,6 +235,12 @@ def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolyg
             arcpy.Delete_management(fcOutputRawConfiningState)
         arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcIntersectLineNetwork], fcOutputRawConfiningState, "NO_FID")
 
+        # Call function to clean up fields
+        arcpy.AddMessage("Cleaning up confinement margins layer...")
+        bOK = prepConfinementOutput(fcConfiningMargins)
+        if not bOK:
+            arcpy.AddWarning("An error occurred whilst preparing Confinement Margins layer!")
+            arcpy.AddWarning("Make sure it has a valid MarginID and Length field")
         return True
     except arcpy.ExecuteError:
         # Geoprocessor threw an error
@@ -266,7 +274,6 @@ def determine_banks(fcInputStreamLineNetwork,fcChannelBankPolygons,scratchWorksp
         return
     except Exception as e:
         arcpy.AddError("Error in determine_banks function: " + str(e))
-
 
 def transfer_line(fcInLine,fcToLine,strStreamSide):
     '''
@@ -352,13 +359,12 @@ def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplit
     # you may need to change this.
     search_distance="5 Centimeters"
 
+    # Create a layer object so selections can be done
+    arcpy.MakeFeatureLayer_management(fcSplitPoints,"lyrSplitPoints")
+
     try:
         arcpy.AddMessage("Applying post fix confinement code to resolve geometry issues...")
         aField = "Con_" + strStreamSide
-
-        # Create a layer object so selections can be done
-        lyrSplitPoints = "lyrSplitPoints"
-        arcpy.MakeFeatureLayer_management(fcSplitPoints,lyrSplitPoints)
 
         # Get a count on number of features to process and initialise progress bar
         resObj = arcpy.GetCount_management(fcOutput)
@@ -389,11 +395,11 @@ def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplit
                     myTup = str(tuple(idList))
                     sql = "OBJECTID IN " + myTup
                     #arcpy.AddMessage(sql)
-                    arcpy.SelectLayerByAttribute_management(lyrSplitPoints, "NEW_SELECTION", sql)
+                    arcpy.SelectLayerByAttribute_management("lyrSplitPoints", "NEW_SELECTION", sql)
 
                     # Now read the ORIG_FID into a set, if 2 values are found then the line was incorrectly tagged and the aField needs resetting to null
                     s = set()
-                    with arcpy.da.SearchCursor(lyrSplitPoints,["ORIG_FID"]) as cursor3:
+                    with arcpy.da.SearchCursor("lyrSplitPoints",["ORIG_FID"]) as cursor3:
                         for row3 in cursor3:
                             s.add(row3[0])
 
@@ -410,6 +416,8 @@ def postFIXtoConfinement(fcOutput,strStreamSide,lyrNearPointsConfinement,fcSplit
     except Exception as e:
         arcpy.AddError("Error in postFIXtoConfinement function: " + str(e))
         return False
+    finally:
+        arcpy.Delete_management("lyrSplitPoints")
 
 def integrated_width(fcInLines, fcInPolygons, fcOutLines, strMetricName="", boolSegmentPolygon=False, temp_workspace="in_memory"):
      # This code is never executed as the boolean flag that calls this is always FALSE
@@ -442,5 +450,52 @@ def integrated_width(fcInLines, fcInPolygons, fcOutLines, strMetricName="", bool
 
     return fieldIntegratedWidth
 
+def prepConfinementOutput(fc):
+    '''
+        Description:
+            This function cleans up the output shapefile by deleting all but the Length field (created by an earlier step)
+            and adds a MarginID which is simply an incremental number. This prepares the data for the intersect with geology model
+            Tool.
+
+        Inputs:
+            fc = The Confinement Margin FeaureClass
+
+        Outputs:
+            Returns True if code executed without error else False.
+
+        Limitations:
+            Code assumes the FeatureClass to be Shapefile format
+
+        Author:
+            Duncan Hornby (ddh@geodata.soton.ac.uk)
+
+        Created:
+            6/9/18
+    '''
+    try:
+        # Create a list of field names to delete
+        arcpy.AddMessage("... Deleting unnecessary fields")
+        fieldsList = [f.name for f in arcpy.ListFields(fc)]
+        fieldsList.remove("FID")
+        fieldsList.remove("Shape")
+        fieldsList.remove("Length")
+        arcpy.DeleteField_management(fc,fieldsList)
+
+        # Add MarginID and set with incremental number
+        arcpy.AddMessage("... Creating MarginID field")
+        i = 1
+        arcpy.AddField_management(fc,"MarginID","LONG")
+        with arcpy.da.UpdateCursor(fc,["MarginID"]) as cursor:
+            for row in cursor:
+                row[0] = i
+                cursor.updateRow(row)
+                i = i + 1
+
+        # Got here so all OK
+        return True
+    except Exception as e:
+        arcpy.AddError("Error in prepConfinementOutput() function")
+        arcpy.AddError(str(e))
+        return False
 if __name__ == "__main__":
     main(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
