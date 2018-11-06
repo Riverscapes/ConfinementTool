@@ -533,9 +533,6 @@ class ConfiningMarginTool(object):
                 p[7].enabled = "True"
                 p[6].parameterType = "Required"
                 p[7].parameterType = "Optional"
-
-
-
         return
 
     def updateMessages(self, parameters):
@@ -608,23 +605,14 @@ class ConfiningMarginTool(object):
                 idRealization = realization_id
 
                 outputRawConfiningState = Riverscapes.Dataset()
-                outputRawConfiningState.create(arcpy.Describe(p[6].valueAsText).basename,
-                                               path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
+                outputRawConfiningState.create(arcpy.Describe(p[6].valueAsText).basename, path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
 
                 outputConfiningMargins = Riverscapes.Dataset()
-                outputConfiningMargins.create(arcpy.Describe(p[7].valueAsText).basename,
-                                              path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
+                outputConfiningMargins.create(arcpy.Describe(p[7].valueAsText).basename, path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
 
                 newRealization = Riverscapes.ConfinementRealization()
-                newRealization.createConfinementRealization(p[1].valueAsText,
-                                      idStreamNetwork,
-                                      idValleyBottom,
-                                      idChannelPolygon,
-                                      outputConfiningMargins,
-                                      outputRawConfiningState)
-
+                newRealization.createConfinementRealization(p[1].valueAsText, idStreamNetwork, idValleyBottom, idChannelPolygon, outputConfiningMargins, outputRawConfiningState)
                 newRealization.productVersion = ConfinementToolReleaseVersion
-
                 newConfinementProject.addRealization(newRealization)
                 newConfinementProject.writeProjectXML()
         else:
