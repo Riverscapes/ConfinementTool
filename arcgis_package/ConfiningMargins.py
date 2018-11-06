@@ -237,7 +237,7 @@ def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolyg
 
         # Call function to clean up fields
         arcpy.AddMessage("Cleaning up confinement margins layer...")
-        bOK = prepConfinementOutput(fcConfiningMargins)
+        bOK = prepConfinementOutput(fcConfiningMargins,fcConfinementMarginSegmentsBankSide)
         if not bOK:
             arcpy.AddWarning("An error occurred whilst preparing Confinement Margins layer!")
             arcpy.AddWarning("Make sure it has a valid MarginID and Length field")
@@ -450,7 +450,7 @@ def integrated_width(fcInLines, fcInPolygons, fcOutLines, strMetricName="", bool
 
     return fieldIntegratedWidth
 
-def prepConfinementOutput(fc):
+def prepConfinementOutput(fc,fcBankSide):
     '''
         Description:
             This function cleans up the output shapefile by deleting all but the Length field (created by an earlier step)
@@ -471,6 +471,8 @@ def prepConfinementOutput(fc):
 
         Created:
             6/9/18
+        Updated:
+            6/11/18 - Add code to pass over bank side to Confining Margin
     '''
     try:
         # Create a list of field names to delete
@@ -491,7 +493,26 @@ def prepConfinementOutput(fc):
                 cursor.updateRow(row)
                 i = i + 1
 
+        # Create a dictionary where key is an XY tup of centroid and item is the bank side text
+        arcpy.AddMessage("... Extracting bankside information")
+        aDictBankSide = {}
+        with arcpy.da.SearchCursor(fcBankSide,["Shape@XY","BankSide"]) as cursor:
+            for row in cursor:
+                aDictBankSide[row[0]] = row[1]
+
+        # Add bankside field then update.
+        arcpy.AddMessage("... Transferring bankside details to Margins")
+        arcpy.AddField_management(fc,"BankSide","TEXT","10")
+        arcpy.AddMessage("... Extracting Margin information")
+        with arcpy.da.UpdateCursor(fc,["Shape@XY","BankSide"]) as cursor:
+            for row in cursor:
+                xyTup = row[0]
+                side = aDictBankSide[xyTup] # Get the bankside
+                row[1] = side
+                cursor.updateRow(row)
+
         # Got here so all OK
+        del aDictBankSide
         return True
     except Exception as e:
         arcpy.AddError("Error in prepConfinementOutput() function")
