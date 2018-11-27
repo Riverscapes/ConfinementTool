@@ -235,7 +235,7 @@ def main(fcInputStreamLineNetwork,fcInputValleyBottomPolygon,fcInputChannelPolyg
             arcpy.Delete_management(fcOutputRawConfiningState)
         arcpy.Intersect_analysis([fcRawConfiningNetworkSplit,fcIntersectLineNetwork], fcOutputRawConfiningState, "NO_FID")
 
-        # Call function to clean up fields
+        # Call function to clean up fields and add additional attribution to confinement margins layer
         arcpy.AddMessage("Cleaning up confinement margins layer...")
         bOK = prepConfinementOutput(fcConfiningMargins,fcConfinementMarginSegmentsBankSide)
         if not bOK:
@@ -472,7 +472,8 @@ def prepConfinementOutput(fc,fcBankSide):
         Created:
             6/9/18
         Updated:
-            6/11/18 - Add code to pass over bank side to Confining Margin
+             6/11/18 - Add code to pass over bank side to Confining Margin
+            27/11/18 - Add error traping when trying to pass over bankside as it does not always work for some reason.
     '''
     try:
         # Create a list of field names to delete
@@ -501,15 +502,27 @@ def prepConfinementOutput(fc,fcBankSide):
                 aDictBankSide[row[0]] = row[1]
 
         # Add bankside field then update.
+        failed = []
         arcpy.AddMessage("... Transferring bankside details to Margins")
         arcpy.AddField_management(fc,"BankSide","TEXT","10")
         arcpy.AddMessage("... Extracting Margin information")
-        with arcpy.da.UpdateCursor(fc,["Shape@XY","BankSide"]) as cursor:
+        with arcpy.da.UpdateCursor(fc,["Shape@XY","MarginID","BankSide"]) as cursor:
             for row in cursor:
                 xyTup = row[0]
-                side = aDictBankSide[xyTup] # Get the bankside
-                row[1] = side
-                cursor.updateRow(row)
+                ID = row[1]
+                if aDictBankSide.has_key(xyTup):
+                    side = aDictBankSide[xyTup] # Get the bankside
+                    row[2] = side
+                    cursor.updateRow(row)
+                else:
+                    failed.append(ID)
+
+        # Report any failed margins
+        if len(failed) > 0:
+            arcpy.AddWarning("The following Margins failed to pass over bank side information")
+            arcpy.AddWarning("ID's are " + str(failed))
+            arcpy.AddWarning("")
+            arcpy.AddWarning("You need to manually correct the confinement margins layer and update the RawConfiningState layer!")
 
         # Got here so all OK
         del aDictBankSide
