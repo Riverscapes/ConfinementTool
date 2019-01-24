@@ -55,3 +55,6 @@ The Confinement Toolbox was written by Kelly Whitehead (South Fork Research, Sea
 - Steve Fortney (TerrAqua, Inc.)
 - Jean Olson (SFR)
 
+# Support
+While the confinement tool scripts are free, open-source and reasonably well documented, it is not perfect, and you get what you pay for. Unlike our more mature models (e.g. GCD) that have full GUIs and ArcGIS Add-Ins, the confinement tool is a highly finicky series of ArcPy Toolboxes and scripts, that are very version sensitive (to both version of ArcGIS and Python), and with rather narrow workflows that have been tailored to how we typically run confinement in the ETAL lab. The dirty secret about the confinement tool is that none of the development or support happens without someone paying for it (contrary to popular belief, we get no support from our university for supporting this effort and capable students don’t work for free). Everything is on our personal time and personal dime. We try to help out users where we can, but our development and support team is in high demand on our paying contracts. If you want to ensure you get the help you need when you need it, you can hire an USU ETAL analyst to help you with your confinement analysis. 
+
