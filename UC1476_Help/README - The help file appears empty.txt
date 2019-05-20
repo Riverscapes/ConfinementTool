@@ -8,6 +8,6 @@
    Don't know why this happens but it means that the file appears blank when you open it.
 
 5] To unblock the CHM file go to file explorer locate the CHM file, then right click on it and go to properties. Under the general tab
-   you will see a UNBLOCK button, click on that to unblock it. You will only ever need to do this once.
+   you will see a UNBLOCK button, click on that to unblock it then press OK. You will only ever need to do this once.
 
 6] To open the CHM file simply double click on it
