@@ -1,6 +1,6 @@
 1] Read this file first before you do anything!
 
-2] Download the CHM file to anwhere on your C:\ drive. It has to be on your C:\ drive to work, so placing it on a network drive fill fail.
+2] Download the CHM file to anywhere on your C:\ drive. It has to be on your C:\ drive to work, so placing it on a network drive fill fail.
 
 3] Read [2] again I said C:\ drive!
 
