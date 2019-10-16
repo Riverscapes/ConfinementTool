@@ -1,27 +1,30 @@
-﻿# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Name:        Stream and Valley Confinement Toolbox                          #
-# Purpose:     Tools for and calculating confinement on a stream              # 
-#              network or using a moving window along the stream network      #
-#                                                                             #
-# Authors:     Kelly Whitehead (kelly@southforkresearch.org)                  #
-#              South Fork Research, Inc                                       #
-#              Seattle, Washington                                            #
-#                                                                             #
-# Created:     2015-Jan-08                                                    #
-# Version:      2.2.03                                                        #
-# Released:     2017 AUG 01                                                   #
-#                                                                             #
-# License:     Free to use.                                                   #
-#                                                                             #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+﻿'''
+Name:        Stream and Valley Confinement Toolbox
+Purpose:     Tools for and calculating confinement on a stream
+             network or using a moving window along the stream network
+
+Authors:     Kelly Whitehead (kelly@southforkresearch.org)
+             South Fork Research, Inc
+             Seattle, Washington
+
+Created:     2015-Jan-08
+Version:     2.2.03
+Released:    2017 AUG 01
+Updated:     23/8/2018 - DDH - Removed redundant imports to Riverscapes module
+                         DDH - Set parameter type to GPFeatureLayer so the function testLayerSelection() would actually do it's job.
+                         DDH - Updated version number to .04
+License:     Free to use.
+'''
 # !/usr/bin/env python
 
 # # Import Modules # #
 from os import path, makedirs
 import arcpy
 from arcgis_package import ConfiningMargins, MovingWindow, ConfinementSegments
+from Riverscapes import Riverscapes
 
-ConfinementToolReleaseVersion = "2.2.03"
+# Version numbers
+ConfinementToolReleaseVersion = "2.2.04"
 ConfinementProjectVersion = "2.3"
 
 path_lyr = path.join(path.dirname(path.realpath(__file__)),"lyr")
@@ -31,19 +34,16 @@ class Toolbox(object):
         """Define the toolbox (the name of the toolbox is the name of the
         .pyt file)."""
         self.label = "Confinement Toolbox"
-        self.alias = ''
+        self.alias = 'ConfinementTB'
         #self.description = "Tools for generating Valley Confinement."
 
         # List of tool classes associated with this toolbox
-        self.tools = [MovingWindowConfinementTool,
-                      SegmentedNetworkConfinementTool,
-                      #ConfiningMarginTool2,
-                      ConfiningMarginTool,
-                      ConfinementProjectTool,
-                      LoadInputsTool]
+        # Not all tool classes are exposed
+        self.tools = [MovingWindowConfinementTool,SegmentedNetworkConfinementTool,ConfiningMarginTool,ConfinementProjectTool,LoadInputsTool]
 
-
-# Project Management #
+#
+# Tools
+#
 class ConfinementProjectTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
@@ -111,36 +111,43 @@ class ConfinementProjectTool(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-
         return
 
     def updateMessages(self, parameters):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
-
         return
 
     def execute(self, p, messages):
-        """The source code of the tool."""
-        from Riverscapes import Riverscapes
+        """
+            Description:
+                The source code of the tool.
+            Updates:
+                15/8/18 - DDH - Useful messages added to inform user and help with debugging.
+                23/8/18 - DDH - Added error trapping.
+        """
 
-        projectFolder = p[1].valueAsText
+        try:
+            projectFolder = p[1].valueAsText
 
-        if p[2].valueAsText == "true":
-            projectFolder = path.join(p[1].valueAsText,p[0].valueAsText)
-            makedirs(projectFolder)
+            if p[2].valueAsText == "true":
+                projectFolder = path.join(p[1].valueAsText,p[0].valueAsText)
+                makedirs(projectFolder)
+                arcpy.AddMessage("Project folder created.")
 
-        newConfinementProject = Riverscapes.Project()
-        newConfinementProject.create(p[0].valueAsText, "Confinement", projectPath=projectFolder)
-        newConfinementProject.addProjectMetadata("Operator",p[3].valueAsText)
-        newConfinementProject.addProjectMetadata("Region",p[4].valueAsText)
-        newConfinementProject.addProjectMetadata("Watershed",p[5].valueAsText)
-        newConfinementProject.addProjectMetadata("ConfinementProjectVersion", ConfinementProjectVersion)
-        newConfinementProject.addProjectMetadata("ConfinementToolRelease", ConfinementToolReleaseVersion)
-        newConfinementProject.writeProjectXML()
-
-        return
-
+            # Create Project file
+            newConfinementProject = Riverscapes.Project()
+            newConfinementProject.create(p[0].valueAsText, "Confinement", projectPath=projectFolder)
+            newConfinementProject.addProjectMetadata("Operator",p[3].valueAsText)
+            newConfinementProject.addProjectMetadata("Region",p[4].valueAsText)
+            newConfinementProject.addProjectMetadata("Watershed",p[5].valueAsText)
+            newConfinementProject.addProjectMetadata("ConfinementProjectVersion", ConfinementProjectVersion)
+            newConfinementProject.addProjectMetadata("ConfinementToolRelease", ConfinementToolReleaseVersion)
+            newConfinementProject.writeProjectXML()
+            arcpy.AddMessage("Project file " + newConfinementProject.xmlname + " created.")
+            return
+        except Exception as e:
+            arcpy.AddError("Error in Execute function: " + str(e))
 
 class LoadInputsTool(object):
     def __init__(self):
@@ -151,20 +158,24 @@ class LoadInputsTool(object):
         self.category = "Confinement Project Management"
 
     def getParameterInfo(self):
-        """Define parameter definitions"""
+        ''' Description:
+                Define parameter definitions
+
+            Modified:
+                28/8/18 - DDH - Added 4th parameter and removed code making p1-p3 optional.
+
+        '''
 
         p1 = paramStreamNetwork
         p2 = paramChannelPolygon
         p3 = paramValleyBottom
 
-        p1.parameterType = "Optional"
-        p2.parameterType = "Optional"
-        p3.parameterType = "Optional"
+        # Create an option buffer Parameter, the default will be zero metres, if the user changes
+        # this then the channel polygon will be buffered during the export to shapefile
+        p4 = arcpy.Parameter(name="paramBufferDistance",displayName="Buffer Channel Polygon (m)",direction="Input",datatype="GPLong",parameterType="Optional",enabled=True,multiValue=False)
+        p4.value = 0
 
-        params = [paramProjectXML,
-                  p1,
-                  p2,
-                  p3]
+        params = [paramProjectXML,p1,p2,p3,p4]
 
         return params
 
@@ -176,82 +187,121 @@ class LoadInputsTool(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter.  This method is called after internal validation."""
+        '''
+            Description:
+                Modify the messages created by internal validation for each tool
+                parameter.  This method is called after internal validation.
 
+            Modified:
+                28/8/18 - DDH - Check on sensible 4th parameter value, must be zero or greater.
+        '''
+
+        p = parameters[4]
+        if p.value < 0:
+            p.setErrorMessage("Negatives buffer distances are invalid, must be zero or greater!")
+        else:
+            p.clearMessage()
         return
 
     def execute(self, p, messages):
-        """The source code of the tool."""
+        """
+            Description:
+                The source code of the tool.
 
-        from Riverscapes import Riverscapes
+            Updates:
+                23/8/18 - DDH - Error trapping and useful messages added to inform user and help with debugging.
+                23/8/18 - DDH - Removed redundant import from module os
+                28/8/18 - DDH - Added new code that will buffer the channel polygon as it stores it in the project
+                                sub-folder, but only if buffer distance is greater than zero.
+        """
 
-        from os import path,makedirs
-        newConfinementProject = Riverscapes.Project(p[0].valueAsText)
+        try:
 
-        pathProject = arcpy.Describe(p[0].valueAsText).path
+            # Get a handle on project file (project.rs.xml)
+            newConfinementProject = Riverscapes.Project(p[0].valueAsText)
+            pathProject = arcpy.Describe(p[0].valueAsText).path
 
-        # Create Project Paths if they do not exist
-        pathInputs = pathProject + "\\Inputs"
-        if not arcpy.Exists(pathInputs):
-            makedirs(pathInputs)
+            # Create Project Paths if they do not exist
+            pathInputs = pathProject + "\\Inputs"
+            if not arcpy.Exists(pathInputs):
+                makedirs(pathInputs)
+                arcpy.AddMessage("Inputs Subfolder created.")
 
 
-        # KMW - The following is a lot of repeated code for each input. It contains file and folder creation and copying, rather than useing the project module to do this. This could be streamlined in the future, but
-        # is working at the moment.
-        if p[1].valueAsText: # Stream Network Input
-            pathStreamNetworks = pathInputs + "\\StreamNetworks"
-            nameStreamNetwork = arcpy.Describe(p[1].valueAsText).basename
-            if not arcpy.Exists(pathStreamNetworks):
-                makedirs(pathStreamNetworks)
-            id_streamnetwork = Riverscapes.get_input_id(pathStreamNetworks, "StreamNetwork")
-            pathStreamNetworkID = path.join(pathStreamNetworks, id_streamnetwork)
-            makedirs(pathStreamNetworkID)
-            arcpy.FeatureClassToFeatureClass_conversion(p[1].valueAsText, pathStreamNetworkID, nameStreamNetwork)
-            newConfinementProject.addInputDataset(nameStreamNetwork,
-                                                  id_streamnetwork,
-                                                  path.join(path.relpath(pathStreamNetworkID, pathProject),
-                                                            nameStreamNetwork) + ".shp",
-                                                  p[1].valueAsText)
+            # KMW - The following is a lot of repeated code for each input. It contains file and folder creation and copying, rather than using the project module to do this. This could be streamlined in the future, but
+            # is working at the moment.
+            if p[1].valueAsText: # Stream Network Input
+                pathStreamNetworks = pathInputs + "\\StreamNetworks"
+                nameStreamNetwork = arcpy.Describe(p[1].valueAsText).basename
+                if not arcpy.Exists(pathStreamNetworks):
+                    makedirs(pathStreamNetworks)
+                    arcpy.AddMessage("StreamNetworks Subfolder created.")
 
-        if p[2].valueAsText: # Channel Polygon
-            pathChannelPolygons = pathInputs + "\\ChannelPolygons"
-            nameChannelPolygon = arcpy.Describe(p[2].valueAsText).basename
-            if not arcpy.Exists(pathChannelPolygons):
-                makedirs(pathChannelPolygons)
-            id_channelpolygon = Riverscapes.get_input_id(pathChannelPolygons, "ChannelPolygon")
-            pathChannelPolygonID = path.join(pathChannelPolygons,id_channelpolygon)
-            makedirs(pathChannelPolygonID)
-            arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText, pathChannelPolygonID, nameChannelPolygon)
-            newConfinementProject.addInputDataset(nameChannelPolygon,
-                                                  id_channelpolygon,
-                                                  path.join(path.relpath(pathChannelPolygonID, pathProject),
-                                                            nameChannelPolygon) + ".shp",
-                                                  p[2].valueAsText)
+                # Create stream network input sub folder
+                id_streamnetwork = Riverscapes.get_input_id(pathStreamNetworks, "StreamNetwork")
+                pathStreamNetworkID = path.join(pathStreamNetworks, id_streamnetwork)
+                makedirs(pathStreamNetworkID)
+                arcpy.AddMessage("Subfolder " + id_streamnetwork + " created.")
 
-        if p[3].valueAsText: # Valley  Bottom
-            pathValleyBottoms = pathInputs + "\\ValleyBottoms"
-            nameValleyBottom = arcpy.Describe(p[3].valueAsText).basename
-            if not arcpy.Exists(pathValleyBottoms):
-                makedirs(pathValleyBottoms)
-            id_valleybottom = Riverscapes.get_input_id(pathValleyBottoms,"ValleyBottom")
-            pathValleyBottomID = path.join(pathValleyBottoms,id_valleybottom)
-            makedirs(pathValleyBottomID)
-            arcpy.FeatureClassToFeatureClass_conversion(p[3].valueAsText,pathValleyBottomID,nameValleyBottom)
-            newConfinementProject.addInputDataset(nameValleyBottom,
-                                                  id_valleybottom,
-                                                  path.join(path.relpath(pathValleyBottomID,pathProject),nameValleyBottom) + ".shp",
-                                                  p[3].valueAsText)
+                # Copy dataset to shapefile in input subfolder
+                arcpy.AddMessage("Copying stream network into its input folder...")
+                arcpy.FeatureClassToFeatureClass_conversion(p[1].valueAsText, pathStreamNetworkID, nameStreamNetwork)
+                newConfinementProject.addInputDataset(nameStreamNetwork,id_streamnetwork,path.join(path.relpath(pathStreamNetworkID, pathProject),nameStreamNetwork) + ".shp",p[1].valueAsText)
 
-        # Write new XML
-        newConfinementProject.writeProjectXML(p[0].valueAsText)
+            if p[2].valueAsText: # Channel Polygon
+                buffDist = p[4].value # This will be a long of 0 or greater
 
-        return
+                pathChannelPolygons = pathInputs + "\\ChannelPolygons"
+                nameChannelPolygon = arcpy.Describe(p[2].valueAsText).basename
+                if not arcpy.Exists(pathChannelPolygons):
+                    makedirs(pathChannelPolygons)
+                    arcpy.AddMessage("ChannelPolygons Subfolder created.")
 
+                # Create channel polygon input sub folder
+                id_channelpolygon = Riverscapes.get_input_id(pathChannelPolygons, "ChannelPolygon")
+                pathChannelPolygonID = path.join(pathChannelPolygons,id_channelpolygon)
+                makedirs(pathChannelPolygonID)
+                arcpy.AddMessage("Subfolder " + id_channelpolygon + " created.")
+
+                if buffDist == 0:
+                    # Copy dataset to shapefile in input subfolder
+                    arcpy.AddMessage("Copying channel polygon into its input folder...")
+                    arcpy.FeatureClassToFeatureClass_conversion(p[2].valueAsText, pathChannelPolygonID, nameChannelPolygon)
+                else:
+                    # Create a buffered version of channel dataset
+                    arcpy.AddMessage("Buffering channel polygon into its input folder...")
+                    outFC = path.join(pathChannelPolygonID, nameChannelPolygon)+ ".shp"
+                    dist = str(buffDist) + " METERS"
+                    arcpy.Buffer_analysis(p[2].valueAsText,outFC,dist,"FULL","ROUND","NONE","#","PLANAR")
+
+                newConfinementProject.addInputDataset(nameChannelPolygon,id_channelpolygon,path.join(path.relpath(pathChannelPolygonID, pathProject),nameChannelPolygon) + ".shp",p[2].valueAsText)
+
+            if p[3].valueAsText: # Valley  Bottom
+                pathValleyBottoms = pathInputs + "\\ValleyBottoms"
+                nameValleyBottom = arcpy.Describe(p[3].valueAsText).basename
+                if not arcpy.Exists(pathValleyBottoms):
+                    makedirs(pathValleyBottoms)
+                    arcpy.AddMessage("ValleyBottoms Subfolder created.")
+
+                # Create valley bottom input sub folder
+                id_valleybottom = Riverscapes.get_input_id(pathValleyBottoms,"ValleyBottom")
+                pathValleyBottomID = path.join(pathValleyBottoms,id_valleybottom)
+                makedirs(pathValleyBottomID)
+                arcpy.AddMessage("Subfolder " + id_valleybottom + " created.")
+
+                # Copy dataset to shapefile in input subfolder
+                arcpy.AddMessage("Copying valley bottoms into its input folder...")
+                arcpy.FeatureClassToFeatureClass_conversion(p[3].valueAsText,pathValleyBottomID,nameValleyBottom)
+                newConfinementProject.addInputDataset(nameValleyBottom,id_valleybottom,path.join(path.relpath(pathValleyBottomID,pathProject),nameValleyBottom) + ".shp",p[3].valueAsText)
+
+            # Write new XML
+            newConfinementProject.writeProjectXML(p[0].valueAsText)
+            return
+        except Exception as e:
+            arcpy.AddError("Error in Execute function: " + str(e))
 
 class LoadInputsFromProjectTool(object):
     def __init__(self):
@@ -276,12 +326,7 @@ class LoadInputsFromProjectTool(object):
         p3.enabled = False
         p3_project.enabled = False
 
-        params = [paramProjectXML,
-                  p1_project,
-                  p1,
-                  p2,
-                  p3_project,
-                  p3]
+        params = [paramProjectXML,p1_project,p1,p2,p3_project,p3]
 
         return params
 
@@ -293,8 +338,6 @@ class LoadInputsFromProjectTool(object):
         """Modify the values and properties of parameters before internal
         validation is performed.  This method is called whenever a parameter
         has been changed."""
-
-        from Riverscapes import Riverscapes
 
         # Todo better check for type of project (GNAT only) and if exists, and if empty datasets
         if p[1].value:
@@ -328,8 +371,6 @@ class LoadInputsFromProjectTool(object):
 
     def execute(self, p, messages):
         """The source code of the tool."""
-
-        from Riverscapes import Riverscapes
 
         ConfinementProject = Riverscapes.Project(p[0].valueAsText)
 
@@ -400,6 +441,7 @@ class LoadInputsFromProjectTool(object):
 
 
 ###### Realizations ######
+
 class ConfiningMarginTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
@@ -409,54 +451,42 @@ class ConfiningMarginTool(object):
         self.Category = 'Confinement Tools'
 
     def getParameterInfo(self):
-        """Define parameter definitions"""
+        '''
+            Description:
+                Define parameter definitions
 
+            Updates: 5/9/18 - DDH - Added Filter by Length Parameter
+        '''
 
         # 0
         # paramProjectXML
         #paramProjectXML.filter.list = ["xml"]
 
-        # 1
-        paramRealizationName = arcpy.Parameter(
-            displayName="Confinement Realization Name",
-            name="realizationName",
-            datatype="GPString",
-            parameterType="Optional",
-            direction="Input")
+        # 1 - Required as it sets the output names to their default names. If this parameter was not set then the output controls disable and don't allow you
+        # to enter a shapefile dataset name!
+        paramRealizationName = arcpy.Parameter(displayName="Confinement Realization Name", name="realizationName", datatype="GPString", parameterType="Required", direction="Input")
 
         # 2
-        #paramStreamNetwork
+        paramStreamNetwork = arcpy.Parameter(displayName="Input Stream Network", name="InputFCStreamNetwork", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
+        paramStreamNetwork.filter.list = ["Polyline"]
 
-        # 3
-        #paramChannelPolygon
+        paramValleyBottom = arcpy.Parameter(displayName="Input Valley Bottom Polygon", name="InputValleyBottomPolygon", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
+        paramValleyBottom.filter.list = ["Polygon"]
 
-        # 4
-        #paramValleyBottom
+        paramChannelPolygon = arcpy.Parameter(displayName="Input Active Channel Polygon (Buffered Bankfull)", name="InputBankfullChannelPoly", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
+        paramChannelPolygon.filter.list = ["Polygon"]
 
-        paramOutputRawConfiningState = arcpy.Parameter(
-            displayName="Output Raw Confining State",
-            name="outputRawConfiningState",
-            datatype="DEFeatureClass",
-            parameterType="Optional",
-            direction="Output",)
+        paramOutputRawConfiningState = arcpy.Parameter(displayName="Output Raw Confining State", name="outputRawConfiningState", datatype="DEFeatureClass", parameterType="Optional", direction="Output",)
         paramOutputRawConfiningState.symbology = path.join(path_lyr,"") + "Raw_Confining_State.lyr"
 
-        paramOutputConfiningMargins = arcpy.Parameter(
-            displayName="Output Confining Margins",
-            name="fcOutputConfiningMargins",
-            datatype="DEFeatureClass",
-            parameterType="Optional",
-            direction="Output")
+        paramOutputConfiningMargins = arcpy.Parameter(displayName="Output Confining Margins", name="fcOutputConfiningMargins", datatype="DEFeatureClass", parameterType="Optional", direction="Output")
         paramOutputConfiningMargins.symbology = path.join(path_lyr,"") + "Confining_Margins.lyr"
 
-        return [paramProjectXML,
-                paramRealizationName,
-                paramStreamNetwork,
-                paramValleyBottom,
-                paramChannelPolygon,
-                paramOutputRawConfiningState,
-                paramOutputConfiningMargins,
-                paramTempWorkspace]
+        paramFilterByLength = arcpy.Parameter(name="FilterByLength",displayName="Filter by Length (m)",direction="Input",datatype="GPDouble",parameterType="Required")
+        paramFilterByLength.value = 5 # Default value of 5m
+
+        # Note: Parameters common to all tools are defined from lines at end of code.
+        return [paramProjectXML,paramRealizationName,paramStreamNetwork,paramValleyBottom,paramChannelPolygon,paramFilterByLength,paramOutputRawConfiningState,paramOutputConfiningMargins,paramTempWorkspace]
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
@@ -467,45 +497,52 @@ class ConfiningMarginTool(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
-        from Riverscapes import Riverscapes
-
         if p[0].altered:
             if p[0].value and arcpy.Exists(p[0].valueAsText):
                 # Set Project Mode
 
-                p[5].enabled = "False"
                 p[6].enabled = "False"
-                p[5].parameterType = "Optional"
+                p[7].enabled = "False"
                 p[6].parameterType = "Optional"
+                p[7].parameterType = "Optional"
 
                 currentProject = Riverscapes.Project(p[0].valueAsText)
 
-                listInputDatasets = []
-                for name,inputDataset in currentProject.InputDatasets.iteritems():
-                    listInputDatasets.append(inputDataset.absolutePath(currentProject.projectPath))
-                p[2].filter.list = listInputDatasets
-                p[3].filter.list = listInputDatasets
-                p[4].filter.list = listInputDatasets
+                # This section of code fails so has been commented out. It is trying to load a list of string values which are featureclass paths into
+                # a control that is expecting a FEATURECLASS with the filter set to a specific geometry type.
+                # We could make the control a GPString then this logic would work but then it messes up the LoadsInputTool. This problem stems
+                # from the odd behaviour of creating generic parameters at the end of the code.
+                #
+                # DDH - 15/8/18
+
+##                listInputDatasets = []
+##                for name,inputDataset in currentProject.InputDatasets.iteritems():
+##                    listInputDatasets.append(inputDataset.absolutePath(currentProject.projectPath))
+##                p[2].filter.list = listInputDatasets
+##                p[3].filter.list = listInputDatasets
+##                p[4].filter.list = listInputDatasets
 
                 if p[1].altered:
                     if p[1].valueAsText:
                         realization_id = currentProject.get_next_realization_id()
-                        p[5].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\RawConfiningState.shp"
-                        p[6].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\ConfiningMargins.shp"
+                        p[6].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\RawConfiningState.shp"
+                        p[7].value = path.join(currentProject.projectPath, "Outputs", realization_id) + "\\ConfiningMargins.shp"
 
             else:
-                p[5].enabled = "True"
                 p[6].enabled = "True"
-                p[5].parameterType = "Required"
-                p[6].parameterType = "Optional"
-
+                p[7].enabled = "True"
+                p[6].parameterType = "Required"
+                p[7].parameterType = "Optional"
         return
 
     def updateMessages(self, parameters):
-        """Modify the messages created by internal validation for each tool
-        parameter.  This method is called after internal validation."""
+        '''
+            Description:
+                Modify the messages created by internal validation for each tool
+                parameter.  This method is called after internal validation.
 
-        from Riverscapes import Riverscapes
+            Updates: 5/9/18 - DDH - Added error check for filter by length parameter and updated parameter indices
+        '''
 
         if parameters[0].valueAsText:
             newConfinementProject = Riverscapes.Project(parameters[0].valueAsText)
@@ -515,6 +552,13 @@ class ConfiningMarginTool(object):
                     parameters[1].setErrorMessage("Realization " + parameters[1].valueAsText + " already exists.")
                     return
 
+        # Check if filter value is negative
+        if parameters[5].value < 0:
+            parameters[5].setErrorMessage("Negative filter lengths are invalid, must be zero or greater")
+        else:
+            parameters[5].clearMessage()
+
+        # Run a bunch a quality control tests on inputs and set any appropriate warnings
         testProjected(parameters[2])
         testProjected(parameters[3])
         testProjected(parameters[4])
@@ -524,13 +568,18 @@ class ConfiningMarginTool(object):
         testLayerSelection(parameters[2])
         testLayerSelection(parameters[3])
         testLayerSelection(parameters[4])
-        testWorkspacePath(parameters[7])
+        testWorkspacePath(parameters[8])
         return
 
     def execute(self, p, messages):
-        """The source code of the tool."""
+        '''
+            Description:
+                The source code of the tool.
+
+            Updates: 5/9/18 - DDH - Indices changed due to new filter by length parameter
+        '''
         reload(ConfiningMargins)
-        from Riverscapes import Riverscapes
+
 
         # if in project mode, create workspaces as needed.
         if p[0].valueAsText:
@@ -539,44 +588,35 @@ class ConfiningMarginTool(object):
                 realization_id = newConfinementProject.get_next_realization_id()
                 makedirs(path.join(newConfinementProject.projectPath, "Outputs", realization_id))
 
-        ConfiningMargins.main(p[2].valueAsText,
-                              p[3].valueAsText,
-                              p[4].valueAsText,
-                              p[5].valueAsText,
-                              p[6].valueAsText,
-                              getTempWorkspace(p[7].valueAsText),
-                              False) # If Not specified, in memory is used
+        bOK = ConfiningMargins.main(p[2].valueAsText,p[3].valueAsText,p[4].valueAsText,p[5].value,p[6].valueAsText,p[7].valueAsText,getTempWorkspace(p[8].valueAsText),False) # If Not specified, in memory is used
 
-        # on success, rewrite xml file if in project mode
-        if p[0].valueAsText:
-            newConfinementProject = Riverscapes.Project() # ConfinementProject.ConfinementProject()
-            newConfinementProject.loadProjectXML(p[0].valueAsText)
+        if bOK:
+            # on success, rewrite xml file if in project mode
+            if p[0].valueAsText:
+                arcpy.AddMessage("... Updating project file")
+                newConfinementProject = Riverscapes.Project() # ConfinementProject.ConfinementProject()
+                newConfinementProject.loadProjectXML(p[0].valueAsText)
 
-            idStreamNetwork = newConfinementProject.get_dataset_id(p[2].valueAsText)
-            idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
-            idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
-            idRealization = newConfinementProject.Realizations[p[1].valueAsText].id
+                idStreamNetwork = newConfinementProject.get_dataset_id(p[2].valueAsText)
+                idValleyBottom = newConfinementProject.get_dataset_id(p[3].valueAsText)
+                idChannelPolygon = newConfinementProject.get_dataset_id(p[4].valueAsText)
+                # DDH - This line was causing tool to fail, after trying to follow logic I think this code was attempting retrieve a realization ID before it ever existed
+                # So I Commented it out and replaced it with the below line, this seems to be work, original code was newConfinementProject.Realizations[p[1].valueAsText].id
+                idRealization = realization_id
 
-            outputRawConfiningState = Riverscapes.Dataset()
-            outputRawConfiningState.create(arcpy.Describe(p[5].valueAsText).basename,
-                                           path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
+                outputRawConfiningState = Riverscapes.Dataset()
+                outputRawConfiningState.create(arcpy.Describe(p[6].valueAsText).basename, path.join("Outputs", idRealization, "RawConfiningState" ) + ".shp")
 
-            outputConfiningMargins = Riverscapes.Dataset()
-            outputConfiningMargins.create(arcpy.Describe(p[6].valueAsText).basename,
-                                          path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
+                outputConfiningMargins = Riverscapes.Dataset()
+                outputConfiningMargins.create(arcpy.Describe(p[7].valueAsText).basename, path.join("Outputs", idRealization, "ConfiningMargins") + ".shp")
 
-            newRealization = Riverscapes.ConfinementRealization()
-            newRealization.createConfinementRealization(p[1].valueAsText,
-                                  idStreamNetwork,
-                                  idValleyBottom,
-                                  idChannelPolygon,
-                                  outputConfiningMargins,
-                                  outputRawConfiningState)
-
-            newRealization.productVersion = ConfinementToolReleaseVersion
-
-            newConfinementProject.addRealization(newRealization)
-            newConfinementProject.writeProjectXML()
+                newRealization = Riverscapes.ConfinementRealization()
+                newRealization.createConfinementRealization(p[1].valueAsText, idStreamNetwork, idValleyBottom, idChannelPolygon, outputConfiningMargins, outputRawConfiningState)
+                newRealization.productVersion = ConfinementToolReleaseVersion
+                newConfinementProject.addRealization(newRealization)
+                newConfinementProject.writeProjectXML()
+        else:
+            arcpy.AddError("Main processing algorithm failed, project file not updated!")
 
         return
 
@@ -671,8 +711,6 @@ class ConfiningMarginTool2(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
-        from Riverscapes import Riverscapes
-
         if p[0].altered:
             if p[0].value and arcpy.Exists(p[0].valueAsText):
                 # Set Project Mode
@@ -763,8 +801,6 @@ class ConfiningMarginTool2(object):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
 
-        from Riverscapes import Riverscapes
-
         if parameters[0].valueAsText:
             newConfinementProject = Riverscapes.Project(parameters[0].valueAsText)
 
@@ -788,7 +824,6 @@ class ConfiningMarginTool2(object):
     def execute(self, p, messages):
         """The source code of the tool."""
         reload(ConfiningMargins)
-        from Riverscapes import Riverscapes
 
         # if in project mode, create workspaces as needed.
         if p[0].valueAsText:
@@ -891,6 +926,7 @@ class ConfiningMarginTool2(object):
         return
 
 ###### Analysis Tools ######
+
 class MovingWindowConfinementTool(object):
         def __init__(self):
             """Define the tool (tool name is the name of the class)."""
@@ -1000,7 +1036,7 @@ class MovingWindowConfinementTool(object):
             """Modify the values and properties of parameters before internal
             validation is performed.  This method is called whenever a parameter
             has been changed."""
-            from Riverscapes import Riverscapes
+##            from Riverscapes import Riverscapes
 
             if p[0].value:
                 if arcpy.Exists(p[0].value):
@@ -1034,7 +1070,7 @@ class MovingWindowConfinementTool(object):
         def updateMessages(self, parameters):
             """Modify the messages created by internal validation for each tool
             parameter.  This method is called after internal validation."""
-            from Riverscapes import Riverscapes
+##            from Riverscapes import Riverscapes
 
             if parameters[0].value:
                 if arcpy.Exists(parameters[0].value):
@@ -1053,7 +1089,7 @@ class MovingWindowConfinementTool(object):
         def execute(self, p, messages):
             """The source code of the tool."""
             reload(MovingWindow)
-            from Riverscapes import Riverscapes
+##            from Riverscapes import Riverscapes
             setEnvironmentSettings()
 
             # if in project mode, create workspaces as needed.
@@ -1089,7 +1125,6 @@ class MovingWindowConfinementTool(object):
                 outConfinementProject.writeProjectXML()
 
             return
-
 
 class FixedSegmentConfinementTool(object):
     def __init__(self):
@@ -1209,7 +1244,6 @@ class FixedSegmentConfinementTool(object):
                           # p[6].valueAsText)
         return
 
-
 class SegmentedNetworkConfinementTool(object):
     def __init__(self):
         """Define the tool (tool name is the name of the class)."""
@@ -1276,8 +1310,6 @@ class SegmentedNetworkConfinementTool(object):
         validation is performed.  This method is called whenever a parameter
         has been changed."""
 
-        from Riverscapes import Riverscapes
-
         if p[0].value:
             if arcpy.Exists(p[0].value):
                 confinementProject = Riverscapes.Project(p[0].valueAsText)
@@ -1310,8 +1342,6 @@ class SegmentedNetworkConfinementTool(object):
         """Modify the messages created by internal validation for each tool
         parameter.  This method is called after internal validation."""
 
-        from Riverscapes import Riverscapes
-
         if parameters[0].value:
             if arcpy.Exists(parameters[0].value):
                 confinementProject = Riverscapes.Project(parameters[0].valueAsText)
@@ -1331,7 +1361,6 @@ class SegmentedNetworkConfinementTool(object):
     def execute(self, p, messages):
         """The source code of the tool."""
         reload(ConfinementSegments)
-        from Riverscapes import Riverscapes
         setEnvironmentSettings()
 
         if p[0].valueAsText:
@@ -1371,93 +1400,44 @@ class SegmentedNetworkConfinementTool(object):
 
         return
 
-
-# Common Params #######################################################################################################
-def get_projectxml_param(display_name, str_category=""):
-
-    param = arcpy.Parameter(
-        displayName=display_name,
-        name=display_name.replace(" ",""),
-        datatype="DEFile",
-        parameterType="Optional",
-        direction="Input",
-        category=str_category)
-    paramProjectXML.filter.list = ["xml"]
-
-    return param
-
-paramProjectXML = arcpy.Parameter(
-    displayName="Confinement Project XML",
-    name="projectXML",
-    datatype="DEFile",
-    parameterType="Optional",
-    direction="Input")
+#
+# Common Parameters #######################################################################################################
+#
+paramProjectXML = arcpy.Parameter(displayName="Confinement Project XML", name="projectXML", datatype="DEFile", parameterType="Optional", direction="Input")
 paramProjectXML.filter.list = ["xml"]
 
-paramStreamNetwork = arcpy.Parameter(
-    displayName="Input Stream Network",
-    name="InputFCStreamNetwork",
-    datatype="DEFeatureClass",
-    parameterType="Required",
-    direction="Input")
+paramStreamNetwork = arcpy.Parameter(displayName="Input Stream Network", name="InputFCStreamNetwork", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
 paramStreamNetwork.filter.list = ["Polyline"]
 
-paramValleyBottom = arcpy.Parameter(
-    displayName="Input Valley Bottom Polygon",
-    name="InputValleyBottomPolygon",
-    datatype="DEFeatureClass", #Integer
-    parameterType="Required",
-    direction="Input")
+paramValleyBottom = arcpy.Parameter(displayName="Input Valley Bottom Polygon", name="InputValleyBottomPolygon", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
 paramValleyBottom.filter.list = ["Polygon"]
 
-paramChannelPolygon = arcpy.Parameter(
-    displayName="Input Active Channel Polygon (Buffered Bankfull)",
-    name="InputBankfullChannelPoly",
-    datatype="DEFeatureClass",
-    parameterType="Required",
-    direction="Input")
+paramChannelPolygon = arcpy.Parameter(displayName="Input Active Channel Polygon (Buffered Bankfull)", name="InputBankfullChannelPoly", datatype="GPFeatureLayer", parameterType="Required", direction="Input")
 paramChannelPolygon.filter.list = ["Polygon"]
 
-paramAnalysisName = arcpy.Parameter(
-    displayName="Name of Analysis",
-    name="nameAnalysis",
-    datatype="GPString",
-    parameterType="Required",
-    direction="Input")
+paramAnalysisName = arcpy.Parameter(displayName="Name of Analysis", name="nameAnalysis", datatype="GPString", parameterType="Required", direction="Input")
 
 # Workspace Params
-paramOutputWorkspace = arcpy.Parameter(
-    displayName="Output Workspace",
-    name="strOutputWorkspace",
-    datatype="DEWorkspace",
-    parameterType="Optional",
-    direction="Input",
-    category="Outputs")
+paramOutputWorkspace = arcpy.Parameter(displayName="Output Workspace", name="strOutputWorkspace", datatype="DEWorkspace", parameterType="Optional", direction="Input", category="Outputs")
 
-paramOutputWorkspaceMW = arcpy.Parameter(
-    displayName="Output Workspace",
-    name="strOutputWorkspace",
-    datatype="DEWorkspace",
-    parameterType="Optional",
-    direction="Output",
-    category="Outputs")
+paramOutputWorkspaceMW = arcpy.Parameter(displayName="Output Workspace", name="strOutputWorkspace", datatype="DEWorkspace", parameterType="Optional", direction="Output", category="Outputs")
 
-paramTempWorkspace = arcpy.Parameter(
-    displayName="Temp Workspace",
-    name="strTempWorkspace",
-    datatype="DEWorkspace",
-    parameterType="Optional",
-    direction="Input",
-    category="Outputs")
+paramTempWorkspace = arcpy.Parameter(displayName="Temp Workspace", name="strTempWorkspace", datatype="DEWorkspace", parameterType="Optional", direction="Input", category="Outputs")
 paramTempWorkspace.value = arcpy.env.scratchWorkspace
 
 
-# Other Functions # 
+#
+# Other Functions
+#
+def get_projectxml_param(display_name, str_category=""):
+    param = arcpy.Parameter(displayName=display_name, name=display_name.replace(" ",""), datatype="DEFile", parameterType="Optional", direction="Input", category=str_category)
+    paramProjectXML.filter.list = ["xml"]
+    return param
+
 def setEnvironmentSettings():
     arcpy.env.OutputMFlag = "Disabled"
     arcpy.env.OutputZFlag = "Disabled"
     return
-
 
 def getTempWorkspace(strWorkspaceParameter):
     if strWorkspaceParameter == None or strWorkspaceParameter == "":
@@ -1465,9 +1445,11 @@ def getTempWorkspace(strWorkspaceParameter):
     else:
        return strWorkspaceParameter
 
-
 def testProjected(parameter):
-    # Test Projection
+    '''
+        Description:
+            Test if dataset referenced by parameter is in a projected coordinate system.
+    '''
     if parameter.value:
         if arcpy.Exists(parameter.value):
             if arcpy.Describe(parameter.value).spatialReference.type <> u"Projected":
@@ -1476,8 +1458,12 @@ def testProjected(parameter):
             else:
                 return True
 
-
 def testMValues(parameter):
+    '''
+        Description:
+            Checks the dataset referenced by the parameter to see if it is M aware. If dataset is found to have M values then
+            warn user to set environment settings before running tool.
+    '''
     if parameter.value:
         if arcpy.Exists(parameter.value):
             if arcpy.Describe(parameter.value).hasM is True:
@@ -1486,7 +1472,6 @@ def testMValues(parameter):
             else:
                 return True
 
-
 def populateFields(parameterSource,parameterField,strDefaultFieldName):
     if parameterSource.value:
         if arcpy.Exists(parameterSource.value):
@@ -1494,7 +1479,9 @@ def populateFields(parameterSource,parameterField,strDefaultFieldName):
             fields = arcpy.Describe(parameterSource.value).fields
             listFields = []
             for f in fields:
-                listFields.append(f.name)
+                # DDH - Add fields to list but exclude specific types.
+                if f.type in ["Double","GlobalID","Guid","Integer","Single","SmallInteger","String"]:
+                    listFields.append(f.name)
             parameterField.filter.list=listFields
             if strDefaultFieldName in listFields:
                 parameterField.value=strDefaultFieldName
@@ -1503,11 +1490,14 @@ def populateFields(parameterSource,parameterField,strDefaultFieldName):
         else:
             parameterField.value=""
             parameterField.filter.list=[]
-            parameterSource.setErrorMessage(" Dataset does not exist.")
+            parameterSource.setErrorMessage("Dataset does not exist.")
     return
 
-
 def testLayerSelection(parameter):
+    '''
+        Description:
+            Checks if the FeatureLayer referenced by parameter has a selection. If layer has then warn user to clear selection
+    '''
     if parameter.value:
         if arcpy.Exists(parameter.value):
             desc=arcpy.Describe(parameter.value)
@@ -1515,7 +1505,6 @@ def testLayerSelection(parameter):
                 if desc.FIDSet:
                     parameter.setWarningMessage("Input layer " + parameter.name + " contains a selection. Clear the selection in order to run this tool on all features in the layer.")
     return
-
 
 def testWorkspacePath(parameterWorkspace):
     if parameterWorkspace.value:

@@ -16,7 +16,7 @@
 import arcpy
 from arcpy.sa import *
 
-__version__ = 0.0.1
+__version__ = '0.0.1'
 
 class Toolbox(object):
     def __init__(self):
@@ -131,7 +131,23 @@ class BankfullChannelTool(object):
 
     def isLicensed(self):
         """Set whether tool is licensed to execute."""
-        return True
+        # Code added by DDH on 20/6/18
+        if arcpy.ProductInfo() in ["ArcView","ArcEditor","ArcInfo"]:
+            if arcpy.ProductInfo() in ["ArcView","ArcEditor"]:
+                if arcpy.CheckExtension("Spatial") == "Available":
+                    # Spatial Analyst extension available so check it out as an
+                    # Arcview/Spatial combination is valid to allow the Polygon
+                    # to raster tool to execute.
+                    arcpy.CheckOutExtenstion("Spatial")
+                else:
+                    # Extension not available so tool will not work
+                    return False
+            else:
+                # Advance licensed machine
+                return True
+        else:
+            # No valid desktop license
+            return False
 
     def updateParameters(self, parameters):
         """Modify the values and properties of parameters before internal
@@ -159,9 +175,8 @@ class BankfullChannelTool(object):
              p[6].valueAsText,
              p[7].valueAsText,
              p[8].valueAsText)
-        
-        return
 
+        return
 
 class PrecipitationToRasterTool(object):
     def __init__(self):
@@ -329,7 +344,7 @@ def main(network, drarea, precip, valleybottom, output, MinBankfullWidth, dblPer
     #smooth for final bunkfull polygon
     arcpy.AddMessage("smoothing final bankfull polygon")
     arcpy.SmoothPolygon_cartography(datasets['bankfull_dissolve'], output, "PAEK", "10 METERS") # TODO: Expose parameter?
-    
+
     # Todo: add params as fields to shp.
 
     if deleteTemp == "True":
@@ -343,6 +358,4 @@ def main(network, drarea, precip, valleybottom, output, MinBankfullWidth, dblPer
 
 if __name__ == "__main__":
     import argparse
-
-
     #main()
