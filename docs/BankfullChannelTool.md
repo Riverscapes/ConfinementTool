@@ -96,3 +96,6 @@ Dependencies:
 6. Generate a minimum width buffer
 7. Merge and Dissolve the Bankfull Polygon with the Minimum width buffer.
 8. Apply 10m "PAEK" smoothing.
+
+## Citation
+Beechie, T. and H. Imaki. 2013. Predicting natural channel patterns based on landscape and geomorphic controls in the Columbia River basin, USA. Water Resources Research 50(1): 39-57. https://doi.org/10.1002/2013WR013629.
