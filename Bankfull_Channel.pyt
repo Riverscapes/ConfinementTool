@@ -10,6 +10,7 @@
 # Created:     05/2015
 # Copyright:   (c) Jordan 2015
 # Modified     12/2017 Kelly Whitehead @ South Fork Research
+# Updated:     01/2020 Maggie Hallerud @ USU ETAL
 # License:     <your license>
 #-------------------------------------------------------------------------------
 
@@ -246,73 +247,84 @@ def main(network, drarea, precip, valleybottom, out_dir, MinBankfullWidth, dblPe
 
     arcpy.env.overwriteOutput = True
     arcpy.CheckOutExtension('Spatial')
-	
-    #workspace = arcpy.env.workspace
-    #datasets = {}
 
     # clean and make new temp_dir
-    #if os.path.exists(temp_dir):
-    #    shutil.rmtree(temp_dir)
-    #os.mkdir(temp_dir)
-    workspace = temp_dir
+    if os.path.exists(temp_dir):
+        shutil.rmtree(temp_dir)
+    os.mkdir(temp_dir)
 
     # make output directory
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
     #create thiessen polygons from segmented stream network
-    midpoints = os.path.join(workspace, "midpoints.shp")
-    #network_lyr = "network.lyr"
-    #arcpy.MakeFeatureLayer_management(network, network_lyr)
+    midpoints = os.path.join(temp_dir, "midpoints.shp")
     arcpy.FeatureVerticesToPoints_management(network, midpoints, "MID")
-
-    arcpy.AddMessage("creating thiessen polygons")
-    print '.....creating thiessen polygons'
-    thiessen = os.path.join(workspace, "thiessen.shp")
+    arcpy.AddMessage("Creating thiessen polygons")
+    thiessen = os.path.join(temp_dir, "thiessen.shp")
     arcpy.CreateThiessenPolygons_analysis(midpoints, thiessen)
-    thiessen_clip = os.path.join(workspace, "thiessen_clip.shp")
-    valley_buffer = os.path.join(workspace, "valley_buffer.shp")
-    arcpy.Buffer_analysis(valleybottom,  valley_buffer, "15 Meters", "FULL", "ROUND", "ALL")
-    arcpy.Clip_analysis(thiessen,  valley_buffer, thiessen_clip)
+
+    # clip thiessen polygons to buffered valley bottom
+    thiessen_clip = os.path.join(temp_dir, "thiessen_clip.shp")
+    valley_buffer = os.path.join(temp_dir, "valley_buffer.shp")
+    arcpy.Buffer_analysis(valleybottom, valley_buffer, "15 Meters", "FULL", "ROUND", "ALL")
+    arcpy.Clip_analysis(thiessen, valley_buffer, thiessen_clip)
+
+    # calculate precip and drarea values for each thiessen polygon
+    arcpy.AddMessage("Adding drainage area values to thiessen polygons")
+    add_raster_values(thiessen_clip, drarea, "drarea", temp_dir)
+    arcpy.AddMessage("Adding precipitation values to thiessen polygons")
+    add_raster_values(thiessen_clip, precip, "precip", temp_dir)
+    
+    # dissolve network 
+    arcpy.AddMessage("Applying precip and drainage area data to line network")
+    dissolved_network = os.path.join(temp_dir, "dissolved_network.shp")
+    arcpy.Dissolve_management(network, dissolved_network)
+
+    # intersect dissolved network with thiessen polygons
+    intersect = os.path.join(out_dir, "network_buffer_values.shp")
+    arcpy.Intersect_analysis([dissolved_network, thiessen_clip], intersect, "", "", "LINE")
+
+    # calculate buffer width
+    arcpy.AddMessage("Calculating bankfull buffer width")
+    calculate_buffer_width(intersect, MinBankfullWidth, dblPercentBuffer)
+
+    # create final bankfull polygon
+    create_bankfull_polygon(network, intersect, MinBankfullWidth, out_dir, temp_dir)
+
+    # delete temporary files
+    if deleteTemp == "True":
+        arcpy.AddMessage("Deleting temporary directory")
+        try:
+            shutil.rmtree(temp_dir)
+        except Exception as err:
+            arcpy.AddMessage("Could not delete temp_dir, but final outputs are saved")
+
+
+def add_raster_values(thiessen_clip, raster, field_type, temp_dir):
+    """thiessen_clip : thiessen polygons clipped to buffered valley bottom which values will be added to
+    raster : raster from which values are extracted
+    field_type : "drarea" or "precip"
+    """
+    # set output field names based on field_type
+    if field_type == "drarea":
+        field_name = "DRAREA"
+    if field_type == "precip":
+        field_name = "PRECIP"
 
     # Zonal statistics of drainage area and precip using thiessen polygons
-    print ".....calculating precip and drainage area for each thiessen polygon"
-    arcpy.AddMessage("calculating zonal statistics for precip and drainage area")
-    #tbl_drarea_zs = os.path.join(workspace, "zonal_table_drarea")
-    #tbl_precip_zs = os.path.join(workspace, "zonal_table_precip")
-    tbl_drarea_zs = os.path.join(workspace, "zonal_table_drarea.dbf")
-    tbl_drarea_zs = ZonalStatisticsAsTable(thiessen_clip, "FID", drarea, tbl_drarea_zs, "DATA", "MAXIMUM")
-    tbl_precip_zs = os.path.join(workspace, "zonal_table_precip.dbf")
-    tbl_precip_zs = ZonalStatisticsAsTable(thiessen_clip, "FID", precip, tbl_precip_zs, "DATA", "MAXIMUM")
+    tbl_out = os.path.join(temp_dir, "zonal_table_" + field_type + ".dbf")
+    tbl_zs = ZonalStatisticsAsTable(thiessen_clip, "FID", raster, tbl_out, "DATA", "MAXIMUM")
 
-    # # convert rasters to integers
-    # int_dr_area = Int(dr_area_zs)
-    # int_precip = Int(precip_zs)
-    #
-    # # convert integer rasters to polygons
-    #max_dr_area_poly = os.path.join(workspace, "max_dr_area_poly")
-    #max_precip_poly = os.path.join(workspace, "max_precip_poly")
-    # arcpy.RasterToPolygon_conversion(dr_area_zs, max_dr_area_poly)
-    # arcpy.RasterToPolygon_conversion(precip_zs, max_precip_poly)
-
-    # join thiessen clip to tbl_drarea_zs and calculate drarea for each thiessen polygon    
-    arcpy.JoinField_management(thiessen_clip, "FID", tbl_drarea_zs, "FID_", "MAX")
-    arcpy.AddField_management(thiessen_clip, "DRAREA", "FLOAT")
-    with arcpy.da.UpdateCursor(thiessen_clip, ["MAX", "DRAREA"]) as cursor:
+    # join thiessen clip to zonal statas table and calculate raster value for each thiessen polygon    
+    arcpy.JoinField_management(thiessen_clip, "FID", tbl_zs, "FID_", "MAX")
+    arcpy.AddField_management(thiessen_clip, field_name, "FLOAT")
+    with arcpy.da.UpdateCursor(thiessen_clip, ["MAX", field_name]) as cursor:
         for row in cursor:
             row[1] = row[0]
             cursor.updateRow(row)
     arcpy.DeleteField_management(thiessen_clip, "MAX")
   
-    # join thiessen clip to tbl_precip_zs and calculate precip for each thiessen polygon
-    arcpy.JoinField_management(thiessen_clip, "FID", tbl_precip_zs, "FID_", "MAX")
-    arcpy.AddField_management(thiessen_clip, "PRECIP", "FLOAT")
-    with arcpy.da.UpdateCursor(thiessen_clip, ["MAX", "PRECIP"]) as cursor:
-        for row in cursor:
-            row[1] = row[0]
-            cursor.updateRow(row)
-    arcpy.DeleteField_management(thiessen_clip, "MAX")
-
     ## We're going to extract raster values to the center of each thiessen polygon that did not
     ## receive a value using zonal statistics. Most polygons are being "missed" for precip and some
     ## for drainage area since the raster resolution is larger than many of these tiny thiessen polygons -
@@ -321,23 +333,23 @@ def main(network, drarea, precip, valleybottom, out_dir, MinBankfullWidth, dblPe
     # get list of original fields before anything else
     thiessen_fields = [f.name for f in arcpy.ListFields(thiessen_clip)]
     # select thiessen polygons with no drainage area data
-    no_drarea_data = arcpy.Select_analysis(thiessen_clip, None, """ "DRAREA" = 0 """)
+    no_data = arcpy.Select_analysis(thiessen_clip, None, """ %s = 0 """ % field_name)
     # convert selected polygons to centroid points
-    drarea_pts = os.path.join(temp_dir, "missing_drarea_pts.shp")
-    arcpy.FeatureToPoint_management(no_drarea_data, drarea_pts, "INSIDE")
+    missing_pts = os.path.join(temp_dir, "missing_" + field_type + "_pts.shp")
+    arcpy.FeatureToPoint_management(no_data, missing_pts, "INSIDE")
     # extract values from raster to points
-    missing_drarea_data = os.path.join(temp_dir, "missing_drarea_data.shp")
-    arcpy.sa.ExtractValuesToPoints(drarea_pts, drarea, missing_drarea_data)
+    missing_data = os.path.join(temp_dir, "missing_" + field_type + "_data.shp")
+    arcpy.sa.ExtractValuesToPoints(missing_pts, raster, missing_data)
     # join points to selected polygons
-    filled_missing_drarea = os.path.join(temp_dir, "filled_missing_drarea.shp")
+    filled_missing_thiessen = os.path.join(temp_dir, "filled_missing_" + field_type + ".shp")
     needed_fields = thiessen_fields.append("RASTERVALU")
-    arcpy.SpatialJoin_analysis(no_drarea_data, missing_drarea_data, filled_missing_drarea,
+    arcpy.SpatialJoin_analysis(no_data, missing_data, filled_missing_thiessen,
                                join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL",
                                field_mapping=needed_fields, match_option="CONTAINS")
     # join selected polygons to original thiessen polygons
-    arcpy.JoinField_management(thiessen_clip, "Input_FID", filled_missing_drarea, "Input_FID")
+    arcpy.JoinField_management(thiessen_clip, "Input_FID", filled_missing_thiessen, "Input_FID")
     # fill in missing DRAREA values based on raster values extracted to points
-    with arcpy.da.UpdateCursor(thiessen_clip, ["DRAREA", "RASTERVALU"]) as cursor:
+    with arcpy.da.UpdateCursor(thiessen_clip, [field_name, "RASTERVALU"]) as cursor:
         for row in cursor:
             if row[0] == 0:
                 row[0] = row[1]
@@ -354,56 +366,8 @@ def main(network, drarea, precip, valleybottom, out_dir, MinBankfullWidth, dblPe
                 print "Error thrown was"
                 print err
 
-    # same thing for PRECIP field....
-    # set output names
-    no_precip_data = arcpy.Select_analysis(thiessen_clip, None, """ "PRECIP" = 0 """)
-    precip_pts = os.path.join(temp_dir, "missing_precip_pts.shp")
-    missing_precip_data = os.path.join(temp_dir, "missing_precip_data.shp")
-    filled_missing_precip = os.path.join(temp_dir, "filled_missing_precip.shp")
-    # convert polygons to centroid points - "inside" set so that points end up in
-    # original polygon, otherwise spatial join misses some points
-    arcpy.FeatureToPoint_management(no_precip_data, precip_pts, "INSIDE")
-    # remove RASTERVALU to prevent error...
-    precip_pts_fields = [f.name for f in arcpy.ListFields(precip_pts)]
-    if "RASTERVALU" in precip_pts_fields:
-        arcpy.DeleteField_management(precip_pts, "RASTERVALU")
-    if os.path.exists(missing_precip_data):
-        missing_precip_fields = [f.name for f in arcpy.ListFields(missing_precip_data)]
-        if "RASTERVALU" in missing_precip_fields:
-            arcpy.DeleteField_management(missing_precip_data, "RASTERVALU")
-    arcpy.sa.ExtractValuesToPoints(precip_pts, precip, missing_precip_data)
-    needed_fields = thiessen_fields.append("RASTERVALU")
-    arcpy.SpatialJoin_analysis(no_precip_data, missing_precip_data, filled_missing_precip,
-                               join_operation="JOIN_ONE_TO_ONE", join_type="KEEP_ALL",
-                               field_mapping=needed_fields, match_option="CONTAINS")
-    arcpy.JoinField_management(thiessen_clip, "Input_FID", filled_missing_precip, "Input_FID")
-    with arcpy.da.UpdateCursor(thiessen_clip, ["PRECIP", "RASTERVALU"]) as cursor:
-        for row in cursor:
-            if row[0] == 0:
-                row[0] = row[1]
-            cursor.updateRow(row)
-    arcpy.DeleteField_management(thiessen_clip, "RASTERVALU")
-    all_fields = [f.name for f in arcpy.ListFields(thiessen_clip)]
-    for f in all_fields:
-        if f not in thiessen_fields:
-            try:
-                arcpy.DeleteField_management(thiessen_clip, f)
-            except Exception as err:
-                print "Could not delete unnecessary field " + f + " from thiessen_clip.shp"
-                print "Error thrown was"
-                print err
-    
-    # dissolve network and intersect with both rasters
-    arcpy.AddMessage("applying precip and drainage area data to line network")
-    print ".....adding precip and drainage area data to the line network"
-    dissolved_network = os.path.join(workspace, "dissolved_network.shp")
-    arcpy.Dissolve_management(network, dissolved_network)
 
-    intersect = os.path.join(out_dir, "network_buffer_values.shp")
-    arcpy.Intersect_analysis([dissolved_network, thiessen_clip], intersect, "", "", "LINE")
-    # intersect2 = os.path.join(workspace, "intersect2")
-    # arcpy.Intersect_analysis([intersect, dmax_precip_poly], intersect2, "", "", "LINE")
-
+def calculate_buffer_width(intersect, MinBankfullWidth, dblPercentBuffer):
     arcpy.AddField_management(intersect, "BFWIDTH", "FLOAT")
     with arcpy.da.UpdateCursor(intersect, ["DRAREA", "PRECIP", "BFWIDTH"])as cursor:
         for row in cursor:
@@ -417,48 +381,38 @@ def main(network, drarea, precip, valleybottom, out_dir, MinBankfullWidth, dblPe
                 #   row[2] = ' '
                 cursor.updateRow(row)
 
+    # adjust buffer width based on percent buffer
     arcpy.AddField_management(intersect, "BUFWIDTH", "DOUBLE")
     with arcpy.da.UpdateCursor(intersect, ["BFWIDTH", "BUFWIDTH"]) as cursor:
         for row in cursor:
             row[1] = row[0]/2 + ((row[0]/2) * (float(dblPercentBuffer)/100))
             cursor.updateRow(row)
 
+
+def create_bankfull_polygon(network, intersect, MinBankfullWidth, out_dir, temp_dir):
     # buffer network by bufwidth field to create bankfull polygon
-    arcpy.AddMessage("buffering network")
-    print ".....buffering network"
-    bankfull = os.path.join(workspace, "bankfull.shp")
+    arcpy.AddMessage("Buffering network")
+    bankfull = os.path.join(temp_dir, "bankfull.shp")
     arcpy.Buffer_analysis(intersect, bankfull, "BUFWIDTH", "FULL", "ROUND", "ALL")
 
-    bankfull_min_buffer = os.path.join(workspace, "min_buffer.shp")
-    bankfull_merge = os.path.join(workspace, "bankfull_merge.shp")
-    bankfull_dissolve = os.path.join(workspace, "bankfull_dissolve.shp")
+    # merge buffer with min buffer
+    bankfull_min_buffer = os.path.join(temp_dir, "min_buffer.shp")
+    bankfull_merge = os.path.join(temp_dir, "bankfull_merge.shp")
+    bankfull_dissolve = os.path.join(temp_dir, "bankfull_dissolve.shp")
     arcpy.Buffer_analysis(network, bankfull_min_buffer, str(MinBankfullWidth), "FULL", "ROUND", "ALL")
     arcpy.Merge_management([bankfull, bankfull_min_buffer], bankfull_merge)
+
+    # dissolve polygon buffers
     arcpy.Dissolve_management(bankfull_merge, bankfull_dissolve)
 
-    #smooth for final bunkfull polygon
-    arcpy.AddMessage("smoothing final bankfull polygon")
-    print ".....smoothing final bankfull polygon"
+    #smooth for final bankfull polygon
+    arcpy.AddMessage("Smoothing final bankfull polygon")
     output = os.path.join(out_dir, "final_bankfull_channel.shp")
     arcpy.SmoothPolygon_cartography(bankfull_dissolve, output, "PAEK", "10 METERS") # TODO: Expose parameter?
     
     # Todo: add params as fields to shp.
 
-    if deleteTemp == "True":
-        print ".....deleting temporary directory"
-        try:
-            shutil.rmtree(temp_dir)
-        except Exception as err:
-            print "Could not delete temp_dir, but final outputs are saved"
-        #datasets = [midpoints, thiessen, valley_buffer, thiessen_clip, dissolved_network, intersect, bankfull, bankfull_min_buffer,
-        #            bankfull_merge, bankfull_dissolve]
-        #arcpy.AddMessage("deleting temporary files")
-        #for dataset in datasets:
-        #    if arcpy.Exists(dataset):
-        #        arcpy.Delete_management(dataset)
-
-    #del dr_area_zs, precip_zs, int_dr_area, int_precip
-
+    
 
 if __name__ == "__main__":
     import argparse
