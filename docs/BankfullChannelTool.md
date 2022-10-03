@@ -23,7 +23,7 @@ A DEM covering the entire Watershed of interest is required. It is highly recomm
    2. Multiply raster by: (cellX size * conversion value to km) * (cellY size * conversion value to km) 
    3. The largest raster value should be in the range of the estimated km area of the watershed.
    
-> Note: The [BRAT table tool](http://brat.riverscapes.xyz/Documentation/Tutorials/4-BRATTableTool.html) calculates drainage area in square kilometers. If you have already run BRAT on your watershed, the raster can be found under 'Inputs/03_Topography/DEM_01/Flow/DrainArea_sqkm.tif' within the BRAT project folder.
+> Note: The [BRAT table tool](http://brat.riverscapes.net/Documentation/Tutorials/4-BRATTableTool.html) calculates drainage area in square kilometers. If you have already run BRAT on your watershed, the raster can be found under 'Inputs/03_Topography/DEM_01/Flow/DrainArea_sqkm.tif' within the BRAT project folder.
 
 ### Precipitation Raster
 

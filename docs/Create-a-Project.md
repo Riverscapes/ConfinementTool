@@ -10,7 +10,7 @@ A [Confinement Riverscapes Project](About-Confinement-Projects) is used to manag
 
 Make sure you have the following datasets, cleaned and ready to go:
 
-- ***Stream Line Network*** Clean and segment the stream network as desired. Since Confinement values will be calculated using the segmentation of the network you load into the project, you must do this ***prior*** to loading the project. We recommend using the [GNAT Toolset](gnat.riverscapes.xyz) to perform these actions.
+- ***Stream Line Network*** Clean and segment the stream network as desired. Since Confinement values will be calculated using the segmentation of the network you load into the project, you must do this ***prior*** to loading the project. We recommend using the [GNAT Toolset](gnat.riverscapes.net) to perform these actions.
 
 
 - ***Valley Bottom Polygon*** Make sure the valley bottom polygon is clean, and represents the confining margin boundary throughout the network. Ideally, this polygon should contain the entire stream network to produce the best results, but is not a requirement for the confinement tool to function.

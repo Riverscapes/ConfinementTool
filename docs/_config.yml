@@ -4,7 +4,7 @@ description: > # this means to ignore newlines until "baseurl:"
   Online help and documentation site for the site
 
 # Final root url of the site. No ending slash. No subdirectory
-url: http://confinement.riverscapes.xyz/
+url: http://confinement.riverscapes.net/
 # If the site is in a subdirectory you should do it like this: "/subdirectory". Otherwise ""
 baseurl:
 # When serving locally what port should we use:
@@ -56,18 +56,18 @@ settings:
         - title: "Model Home"
           url: index
         - title: "Riverscapes Home"
-          url: http://riverscapes.xyz
+          url: http://riverscapes.net
         - title: "About Riverscapes"
-          url: http://riverscapes.xyz/about.html
+          url: http://riverscapes.net/about.html
         - title: "Who We Are"
-          url: http://riverscapes.xyz/who-we-are.html
+          url: http://riverscapes.net/who-we-are.html
         - title: "News"
-          url: http://riverscapes.xyz/news.html
+          url: http://riverscapes.net/news.html
     - title: "RC Tools"
-      url: http://riverscapes.xyz/rc-tools.html
+      url: http://riverscapes.net/rc-tools.html
     - title: "RC Science"
-      url: http://riverscapes.xyz/rc-science.html
+      url: http://riverscapes.net/rc-science.html
     - title: "RC Data"
-      url: http://riverscapes.xyz/rc-data.html
+      url: http://riverscapes.net/rc-data.html
     - title: "RC Help"
-      url: http://riverscapes.xyz/rc-help.html
+      url: http://riverscapes.net/rc-help.html
